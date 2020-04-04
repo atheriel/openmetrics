@@ -1,0 +1,20 @@
+Package: openmetrics
+Title: An 'OpenMetrics'/'Prometheus' Client for R
+Version: 0.0.0.9000
+Authors@R: c(
+  person("Aaron", "Jacobs", role = c("aut", "cre"),
+         email = "aaron.jacobs@crescendotechnology.com"),
+  person("Crescendo Technology Ltd.", role = "cph")
+  )
+Maintainer: Aaron Jacobs <aaron.jacobs@crescendotechnology.com>
+MaintainerSlack: @aaronj
+Description: What the package does (one paragraph).
+License: file LICENSE
+Imports:
+  R6
+Suggests:
+  testthat (>= 2.1.0)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0

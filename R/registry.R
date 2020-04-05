@@ -75,7 +75,7 @@ Registry <- R6::R6Class(
 
     render_all = function() {
       entries <- vapply(self$collect(), function(x) x$render(), character(1))
-      paste(entries, collapse = "\n")
+      paste(c(entries, "# EOF"), collapse = "")
     },
 
     reset_all = function() {

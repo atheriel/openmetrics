@@ -38,11 +38,9 @@ testthat::test_that("Metrics work as expected", {
     '# HELP custom Custom counter.
 # TYPE custom counter
 custom_total 1
-
 # HELP custom Custom gauge.
 # TYPE custom gauge
 custom 1
-
 # HELP dist Custom histogram.
 # TYPE dist histogram
 dist_bucket{le="1.0"} 0
@@ -60,7 +58,7 @@ dist_bucket{le="2048.0"} 3
 dist_bucket{le="+Inf"} 3
 dist_sum 661.7
 dist_count 3
-'
+# EOF'
   )
 
   testthat::expect_silent(reg$reset_all())
@@ -103,12 +101,10 @@ testthat::test_that("Metrics with labels work as expected", {
 # TYPE custom counter
 custom_total{method="GET",endpoint="/"} 6
 custom_total{method="POST",endpoint="/"} 1
-
 # HELP custom Custom gauge.
 # TYPE custom gauge
 custom{method="GET",endpoint="/"} 10
 custom{method="POST",endpoint="/"} 1
-
 # HELP dist Custom histogram.
 # TYPE dist histogram
 dist_bucket{method="GET",endpoint="/",le="1.0"} 0
@@ -141,6 +137,6 @@ dist_bucket{method="POST",endpoint="/",le="2048.0"} 1
 dist_bucket{method="POST",endpoint="/",le="+Inf"} 1
 dist_sum{method="POST",endpoint="/"} 100
 dist_count{method="POST",endpoint="/"} 1
-'
+# EOF'
   )
 })

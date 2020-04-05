@@ -1,2 +1,3 @@
 ^openmetrics\.Rproj$
 ^\.Rproj\.user$
+^tools/.*$

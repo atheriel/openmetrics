@@ -33,6 +33,21 @@ gauge_metric <- function(name, help, ..., registry = global_registry()) {
   }
 }
 
+#' @param buckets A sequence of buckets to bin observations into.
+#' @rdname metrics
+#' @export
+histogram_metric <- function(name, help, buckets = 2 ^ (0:11), ...,
+                             registry = global_registry()) {
+  existing <- registry$metric(name, type = "histogram")
+  if (is.null(existing)) {
+    Histogram$new(
+      name = name, help = help, buckets = buckets, ..., registry = registry
+    )
+  } else {
+    existing
+  }
+}
+
 Metric <- R6::R6Class(
   "Metric",
   public = list(
@@ -99,7 +114,7 @@ Counter <- R6::R6Class(
         )
       } else {
         entries <- vapply(ls(private$value), function(key) {
-          sprintf("%s_total%s %s", private$name, key, private$value[[key]])
+          sprintf("%s_total{%s} %s", private$name, key, private$value[[key]])
         }, character(1))
         sprintf(
           "%s\n%s\n", private$header(), paste(entries, collapse = "\n")
@@ -157,7 +172,7 @@ Gauge <- R6::R6Class(
         )
       } else {
         entries <- vapply(ls(private$value), function(key) {
-          sprintf("%s%s %s", private$name, key, private$value[[key]])
+          sprintf("%s{%s} %s", private$name, key, private$value[[key]])
         }, character(1))
         sprintf(
           "%s\n%s\n", private$header(), paste(entries, collapse = "\n")
@@ -221,6 +236,97 @@ Gauge <- R6::R6Class(
   )
 )
 
+Histogram <- R6::R6Class(
+  "Histogram", inherit = Metric,
+  public = list(
+    initialize = function(name, help, buckets = 2 ^ (0:11), ...,
+                          registry = global_registry()) {
+      super$initialize(name, help, type = "histogram", ..., registry = registry)
+      private$buckets <- c(sort(buckets), Inf)
+      private$le <- c(sprintf("%.1f", (sort(buckets))), "+Inf")
+      self$reset()
+    },
+
+    render = function() {
+      if (is.null(private$labels)) {
+        buckets <- paste0(
+          private$name, "_bucket{le=\"", private$le, "\"} ", private$dist
+        )
+        sums <- sprintf("%s_sum %s", private$name, private$sum)
+        count <- sprintf("%s_count %s", private$name, private$count)
+        sprintf(
+          "%s\n%s\n", private$header(),
+          paste(c(buckets, sums, count), collapse = "\n")
+        )
+      } else {
+        # Matching labels need to be printed together to satisfy the OpenMetrics
+        # parser.
+        keys <- ls(private$dist)
+        blocks <- character(length(keys))
+        for (i in 1:length(keys)) {
+          key <- keys[i]
+          buckets <- paste0(
+            private$name, "_bucket{", key, ",le=\"", private$le, "\"} ",
+            private$dist[[key]]
+          )
+          sums <- sprintf("%s_sum{%s} %s", private$name, key, private$sum[[key]])
+          count <- sprintf(
+            "%s_count{%s} %s", private$name, key, private$count[[key]]
+          )
+          blocks[i] <- paste(c(buckets, sums, count), collapse = "\n")
+        }
+        sprintf(
+          "%s\n%s\n", private$header(), paste(blocks, collapse = "\n")
+        )
+      }
+    },
+
+    observe = function(value, ...) {
+      stopifnot(is.numeric(value))
+      dist <- as.integer(value <= private$buckets)
+
+      # Update the running sum and count values.
+      if (is.null(private$labels)) {
+        private$dist <- private$dist + dist
+        private$count <- private$count + 1
+        private$sum <- private$sum + value
+      } else {
+        key <- encode_labels(merge_labels(list(...), private$labels))
+        current <- private$dist[[key]]
+        # We know that if one entry is missing they all are.
+        if (is.null(current)) {
+          private$dist[[key]] <- dist
+          private$count[[key]] <- 1
+          private$sum[[key]] <- value
+        } else {
+          private$dist[[key]] <- private$dist[[key]] + dist
+          private$count[[key]] <- private$count[[key]] + 1
+          private$sum[[key]] <- private$sum[[key]] + value
+        }
+      }
+    },
+
+    reset = function() {
+      if (is.null(private$labels)) {
+        private$sum <- 0
+        private$count <- 0
+        private$dist <- rep(0, times = length(private$buckets))
+      } else {
+        private$dist <- new.env(parent = emptyenv())
+        private$sum <- new.env(parent = emptyenv())
+        private$count <- new.env(parent = emptyenv())
+        key <- encode_labels(private$labels)
+        private$sum[[key]] <- 0
+        private$count[[key]] <- 0
+        private$dist[[key]] <- rep(0, times = length(private$buckets))
+      }
+    }
+  ),
+  private = list(
+    buckets = numeric(), le = character(), dist = NULL, sum = NULL, count = NULL
+  )
+)
+
 parse_labels <- function(labels) {
   if (length(labels) == 0) {
     return(NULL)
@@ -247,5 +353,5 @@ merge_labels <- function(labels, defaults) {
 }
 
 encode_labels <- function(labels) {
-  sprintf("{%s}", paste0(names(labels), "=\"", labels, "\"", collapse = ","))
+  paste0(names(labels), "=\"", labels, "\"", collapse = ",")
 }

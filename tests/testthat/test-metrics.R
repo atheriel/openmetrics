@@ -26,18 +26,41 @@ testthat::test_that("Metrics work as expected", {
   gauge$reset()
   testthat::expect_equal(gauge$inc(), 1)
 
+  hist <- histogram_metric("dist", "Custom histogram.", registry = reg)
+  testthat::expect_equal(hist$observe(51.7), 51.7)
+  testthat::expect_equal(hist$observe(10), 61.7)
+  testthat::expect_equal(hist$observe(600), 661.7)
+
   out <- collect_metrics(reg)
-  testthat::expect_equal(length(out), 2)
+  testthat::expect_equal(length(out), 3)
   testthat::expect_equal(
     reg$render_all(),
-    "# HELP custom Custom counter.
+    '# HELP custom Custom counter.
 # TYPE custom counter
 custom_total 1
 
 # HELP custom Custom gauge.
 # TYPE custom gauge
 custom 1
-"
+
+# HELP dist Custom histogram.
+# TYPE dist histogram
+dist_bucket{le="1.0"} 0
+dist_bucket{le="2.0"} 0
+dist_bucket{le="4.0"} 0
+dist_bucket{le="8.0"} 0
+dist_bucket{le="16.0"} 1
+dist_bucket{le="32.0"} 1
+dist_bucket{le="64.0"} 2
+dist_bucket{le="128.0"} 2
+dist_bucket{le="256.0"} 2
+dist_bucket{le="512.0"} 2
+dist_bucket{le="1024.0"} 3
+dist_bucket{le="2048.0"} 3
+dist_bucket{le="+Inf"} 3
+dist_sum 661.7
+dist_count 3
+'
   )
 
   testthat::expect_silent(reg$reset_all())
@@ -61,6 +84,13 @@ testthat::test_that("Metrics with labels work as expected", {
   testthat::expect_equal(gauge$set(10, ignored = "value"), 10)
   testthat::expect_equal(gauge$inc(method = "POST"), 1)
 
+  hist <- histogram_metric(
+    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+  )
+  testthat::expect_equal(hist$observe(51.7), 51.7)
+  testthat::expect_equal(hist$observe(10, ignored = "value"), 61.7)
+  testthat::expect_equal(hist$observe(100, method = "POST"), 100)
+
   # Invalid metric labels.
   testthat::expect_error(
     counter_metric("name", "Help text.", ".invalid" = "0", registry = reg),
@@ -78,6 +108,39 @@ custom_total{method="POST",endpoint="/"} 1
 # TYPE custom gauge
 custom{method="GET",endpoint="/"} 10
 custom{method="POST",endpoint="/"} 1
+
+# HELP dist Custom histogram.
+# TYPE dist histogram
+dist_bucket{method="GET",endpoint="/",le="1.0"} 0
+dist_bucket{method="GET",endpoint="/",le="2.0"} 0
+dist_bucket{method="GET",endpoint="/",le="4.0"} 0
+dist_bucket{method="GET",endpoint="/",le="8.0"} 0
+dist_bucket{method="GET",endpoint="/",le="16.0"} 1
+dist_bucket{method="GET",endpoint="/",le="32.0"} 1
+dist_bucket{method="GET",endpoint="/",le="64.0"} 2
+dist_bucket{method="GET",endpoint="/",le="128.0"} 2
+dist_bucket{method="GET",endpoint="/",le="256.0"} 2
+dist_bucket{method="GET",endpoint="/",le="512.0"} 2
+dist_bucket{method="GET",endpoint="/",le="1024.0"} 2
+dist_bucket{method="GET",endpoint="/",le="2048.0"} 2
+dist_bucket{method="GET",endpoint="/",le="+Inf"} 2
+dist_sum{method="GET",endpoint="/"} 61.7
+dist_count{method="GET",endpoint="/"} 2
+dist_bucket{method="POST",endpoint="/",le="1.0"} 0
+dist_bucket{method="POST",endpoint="/",le="2.0"} 0
+dist_bucket{method="POST",endpoint="/",le="4.0"} 0
+dist_bucket{method="POST",endpoint="/",le="8.0"} 0
+dist_bucket{method="POST",endpoint="/",le="16.0"} 0
+dist_bucket{method="POST",endpoint="/",le="32.0"} 0
+dist_bucket{method="POST",endpoint="/",le="64.0"} 0
+dist_bucket{method="POST",endpoint="/",le="128.0"} 1
+dist_bucket{method="POST",endpoint="/",le="256.0"} 1
+dist_bucket{method="POST",endpoint="/",le="512.0"} 1
+dist_bucket{method="POST",endpoint="/",le="1024.0"} 1
+dist_bucket{method="POST",endpoint="/",le="2048.0"} 1
+dist_bucket{method="POST",endpoint="/",le="+Inf"} 1
+dist_sum{method="POST",endpoint="/"} 100
+dist_count{method="POST",endpoint="/"} 1
 '
   )
 })

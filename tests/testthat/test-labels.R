@@ -41,5 +41,5 @@ testthat::test_that("Labels work as expected", {
   )
 
   # Encoding.
-  testthat::expect_equal(encode_labels(valid), '{colour="red",month="aug"}')
+  testthat::expect_equal(encode_labels(valid), 'colour="red",month="aug"')
 })

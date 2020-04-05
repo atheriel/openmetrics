@@ -4,11 +4,20 @@
 \alias{metrics}
 \alias{counter_metric}
 \alias{gauge_metric}
+\alias{histogram_metric}
 \title{Metrics}
 \usage{
 counter_metric(name, help, ..., registry = global_registry())
 
 gauge_metric(name, help, ..., registry = global_registry())
+
+histogram_metric(
+  name,
+  help,
+  buckets = 2^(0:11),
+  ...,
+  registry = global_registry()
+)
 }
 \arguments{
 \item{name}{The name of the metric.}
@@ -18,6 +27,8 @@ gauge_metric(name, help, ..., registry = global_registry())
 \item{...}{Currently ignored.}
 
 \item{registry}{Where to register the metric for later retrieval.}
+
+\item{buckets}{A sequence of buckets to bin observations into.}
 }
 \description{
 A metric is a measure which can be aggregated into a time series, and comes

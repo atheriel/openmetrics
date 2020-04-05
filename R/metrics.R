@@ -44,9 +44,17 @@ Metric <- R6::R6Class(
       private$name <- name
       private$help <- help
       private$type <- type
-      # TODO: Validate labels.
-      private$labels <- list(...)
       private$registry <- registry
+      private$labels <- parse_labels(list(...))
+
+      # We only need to check spec validity for label names once.
+      valid <- grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", names(private$labels))
+      if (!all(valid)) {
+        stop(
+          "One or more invalid metric labels: '",
+          paste(names(private$labels)[!valid], collapse = "', '"), "'."
+        )
+      }
 
       registry$register(name = name, type = type, self)
     },
@@ -74,26 +82,57 @@ Counter <- R6::R6Class(
       # Compatibility with OpenMetrics.
       name <- gsub("_total$", "", name)
       super$initialize(name, help, type = "counter", ..., registry = registry)
+      if (is.null(private$labels)) {
+        # Fast version, just a value.
+        private$value <- 0
+      } else {
+        private$value <- new.env(parent = emptyenv())
+        # Initialize the counter for the default labels.
+        private$value[[encode_labels(private$labels)]] <- 0
+      }
     },
 
     render = function() {
-      sprintf(
-        "%s\n%s_total%s %s\n", private$header(), private$name, "", private$value
-      )
+      if (is.null(private$labels)) {
+        sprintf(
+          "%s\n%s_total %s\n", private$header(), private$name, private$value
+        )
+      } else {
+        entries <- vapply(ls(private$value), function(key) {
+          sprintf("%s_total%s %s", private$name, key, private$value[[key]])
+        }, character(1))
+        sprintf(
+          "%s\n%s\n", private$header(), paste(entries, collapse = "\n")
+        )
+      }
     },
 
     inc = function(by = 1, ...) {
       stopifnot(by > 0)
-      private$value <- private$value + by
-      invisible(private$value)
+      if (is.null(private$labels)) {
+        private$value <- private$value + by
+      } else {
+        key <- encode_labels(merge_labels(list(...), private$labels))
+        value <- private$value[[key]]
+        if (is.null(value)) {
+          private$value[[key]] <- by
+        } else {
+          private$value[[key]] <- value + by
+        }
+      }
     },
 
     reset = function() {
-      private$value <- 0
+      if (is.null(private$labels)) {
+        private$value <- 0
+      } else {
+        private$value <- new.env(parent = emptyenv())
+        private$value[[encode_labels(private$labels)]] <- 0
+      }
     }
   ),
   private = list(
-    value = 0
+    value = NULL
   )
 )
 
@@ -102,38 +141,111 @@ Gauge <- R6::R6Class(
   public = list(
     initialize = function(name, help, ..., registry = global_registry()) {
       super$initialize(name, help, type = "gauge", ..., registry = registry)
+      if (is.null(private$labels)) {
+        # Fast version, just a value.
+        private$value <- 0
+      } else {
+        private$value <- new.env(parent = emptyenv())
+        private$value[[encode_labels(private$labels)]] <- 0
+      }
     },
 
     render = function() {
-      sprintf(
-        "%s\n%s%s %s\n", private$header(), private$name, "", private$value
-      )
+      if (is.null(private$labels)) {
+        sprintf(
+          "%s\n%s %s\n", private$header(), private$name, private$value
+        )
+      } else {
+        entries <- vapply(ls(private$value), function(key) {
+          sprintf("%s%s %s", private$name, key, private$value[[key]])
+        }, character(1))
+        sprintf(
+          "%s\n%s\n", private$header(), paste(entries, collapse = "\n")
+        )
+      }
     },
 
     inc = function(by = 1, ...) {
-      private$value <- private$value + by
-      invisible(private$value)
+      if (is.null(private$labels)) {
+        private$value <- private$value + by
+      } else {
+        key <- encode_labels(merge_labels(list(...), private$labels))
+        value <- private$value[[key]]
+        if (is.null(value)) {
+          private$value[[key]] <- by
+        } else {
+          private$value[[key]] <- value + by
+        }
+      }
     },
 
     dec = function(by = 1, ...) {
-      private$value <- private$value - by
-      invisible(private$value)
+      if (is.null(private$labels)) {
+        private$value <- private$value - by
+      } else {
+        key <- encode_labels(merge_labels(list(...), private$labels))
+        value <- private$value[[key]]
+        if (is.null(value)) {
+          private$value[[key]] <- -by
+        } else {
+          private$value[[key]] <- value - by
+        }
+      }
     },
 
     set = function(value, ...) {
       stopifnot(is.numeric(value))
-      private$value <- value
+      if (is.null(private$labels)) {
+        private$value <- value
+      } else {
+        key <- encode_labels(merge_labels(list(...), private$labels))
+        private$value[[key]] <- value
+      }
     },
 
     set_to_current_time = function(...) {
-      private$value <- unclass(Sys.time())
+      self$set(value = unclass(Sys.time(), ...))
     },
 
     reset = function() {
-      private$value <- 0
+      if (is.null(private$labels)) {
+        private$value <- 0
+      } else {
+        private$value <- new.env(parent = emptyenv())
+        private$value[[encode_labels(private$labels)]] <- 0
+      }
     }
   ),
   private = list(
-    value = 0
+    value = NULL
   )
 )
+
+parse_labels <- function(labels) {
+  if (length(labels) == 0) {
+    return(NULL)
+  }
+  if (is.null(names(labels)) || any(nchar(names(labels)) == 0)) {
+    stop("All labels must be named.", call. = FALSE)
+  }
+  strings <- vapply(
+    labels, function(x) is.character(x) && length(x) == 1, logical(1)
+  )
+  if (!all(strings)) {
+    stop("All labels must be strings.", call. = FALSE)
+  }
+  labels
+}
+
+merge_labels <- function(labels, defaults) {
+  if (length(labels) == 0) {
+    defaults
+  } else {
+    out <- utils::modifyList(defaults, parse_labels(labels))
+    out[names(out) %in% names(defaults)]
+  }
+}
+
+encode_labels <- function(labels) {
+  sprintf("{%s}", paste0(names(labels), "=\"", labels, "\"", collapse = ","))
+}

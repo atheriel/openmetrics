@@ -38,6 +38,9 @@ Metric <- R6::R6Class(
   public = list(
     initialize = function(name, help, type = "gauge", ...,
                           registry = global_registry()) {
+      if (!grepl("^[a-zA-Z_:][a-zA-Z0-9_:]*$", name)) {
+        stop("Invalid metric name: '", name, "'.")
+      }
       private$name <- name
       private$help <- help
       private$type <- type

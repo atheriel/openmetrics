@@ -11,6 +11,12 @@ testthat::test_that("Metrics work as expected", {
   # Previously defined metrics are available under the same name.
   testthat::expect_identical(counter, counter_metric("custom", registry = reg))
 
+  # Invalid metric names.
+  testthat::expect_error(
+    counter_metric(".invalid", "Help text.", registry = reg),
+    regexp = "Invalid metric name"
+  )
+
   dropped <- counter_metric("dropped", "Not included.")
   dropped$unregister()
 

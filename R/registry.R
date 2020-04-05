@@ -39,7 +39,7 @@ Registry <- R6::R6Class(
     },
 
     register = function(name, type, metric) {
-      row <- which(private$index$name == name & private$index$type == type)
+      row <- which(private$index$name == name)
       if (length(row) == 0) {
         new_metric <- data.frame(
           name = name, type = type, stringsAsFactors = FALSE,
@@ -53,7 +53,7 @@ Registry <- R6::R6Class(
     },
 
     unregister = function(name, type) {
-      row <- which(private$index$name == name & private$index$type == type)
+      row <- which(private$index$name == name)
       if (length(row) != 0) {
         # We don't need to modify the data frame.
         private$metrics[[row]] <- NULL

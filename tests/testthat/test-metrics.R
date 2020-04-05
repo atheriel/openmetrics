@@ -2,14 +2,14 @@ testthat::test_that("Metrics work as expected", {
   reg <- registry()
   testthat::expect_equal(length(collect_metrics(reg)), 0)
 
-  counter <- counter_metric("custom", "Custom counter.", registry = reg)
+  counter <- counter_metric("count", "Custom counter.", registry = reg)
   testthat::expect_equal(counter$inc(5), 5)
   testthat::expect_equal(counter$inc(), 6)
   counter$reset()
   testthat::expect_equal(counter$inc(), 1)
 
   # Previously defined metrics are available under the same name.
-  testthat::expect_identical(counter, counter_metric("custom", registry = reg))
+  testthat::expect_identical(counter, counter_metric("count", registry = reg))
 
   # Invalid metric names.
   testthat::expect_error(
@@ -20,7 +20,7 @@ testthat::test_that("Metrics work as expected", {
   dropped <- counter_metric("dropped", "Not included.")
   dropped$unregister()
 
-  gauge <- gauge_metric("custom", "Custom gauge.", registry = reg)
+  gauge <- gauge_metric("value", "Custom gauge.", registry = reg)
   gauge$set(51.7)
   testthat::expect_equal(gauge$dec(), 50.7)
   gauge$reset()
@@ -35,12 +35,12 @@ testthat::test_that("Metrics work as expected", {
   testthat::expect_equal(length(out), 3)
   testthat::expect_equal(
     reg$render_all(),
-    '# HELP custom Custom counter.
-# TYPE custom counter
-custom_total 1
-# HELP custom Custom gauge.
-# TYPE custom gauge
-custom 1
+    '# HELP count Custom counter.
+# TYPE count counter
+count_total 1
+# HELP value Custom gauge.
+# TYPE value gauge
+value 1
 # HELP dist Custom histogram.
 # TYPE dist histogram
 dist_bucket{le="1.0"} 0
@@ -69,14 +69,14 @@ testthat::test_that("Metrics with labels work as expected", {
   testthat::expect_equal(length(collect_metrics(reg)), 0)
 
   counter <- counter_metric(
-    "custom", "Custom counter.", method = "GET", endpoint = "/", registry = reg
+    "count", "Custom counter.", method = "GET", endpoint = "/", registry = reg
   )
   testthat::expect_equal(counter$inc(5), 5)
   testthat::expect_equal(counter$inc(ignored = "value"), 6)
   testthat::expect_equal(counter$inc(method = "POST"), 1)
 
   gauge <- gauge_metric(
-    "custom", "Custom gauge.", method = "GET", endpoint = "/", registry = reg
+    "value", "Custom gauge.", method = "GET", endpoint = "/", registry = reg
   )
   testthat::expect_equal(gauge$set(5), 5)
   testthat::expect_equal(gauge$set(10, ignored = "value"), 10)
@@ -97,14 +97,14 @@ testthat::test_that("Metrics with labels work as expected", {
 
   testthat::expect_equal(
     reg$render_all(),
-    '# HELP custom Custom counter.
-# TYPE custom counter
-custom_total{method="GET",endpoint="/"} 6
-custom_total{method="POST",endpoint="/"} 1
-# HELP custom Custom gauge.
-# TYPE custom gauge
-custom{method="GET",endpoint="/"} 10
-custom{method="POST",endpoint="/"} 1
+    '# HELP count Custom counter.
+# TYPE count counter
+count_total{method="GET",endpoint="/"} 6
+count_total{method="POST",endpoint="/"} 1
+# HELP value Custom gauge.
+# TYPE value gauge
+value{method="GET",endpoint="/"} 10
+value{method="POST",endpoint="/"} 1
 # HELP dist Custom histogram.
 # TYPE dist histogram
 dist_bucket{method="GET",endpoint="/",le="1.0"} 0

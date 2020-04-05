@@ -73,6 +73,11 @@ Registry <- R6::R6Class(
       private$metrics[vapply(private$metrics, length, integer(1)) != 0]
     },
 
+    render_all = function() {
+      entries <- vapply(self$collect(), function(x) x$render(), character(1))
+      paste(entries, collapse = "\n")
+    },
+
     reset_all = function() {
       for (metric in self$collect()) {
         metric$reset()

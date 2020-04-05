@@ -28,6 +28,17 @@ testthat::test_that("Metrics work as expected", {
 
   out <- collect_metrics(reg)
   testthat::expect_equal(length(out), 2)
+  testthat::expect_equal(
+    reg$render_all(),
+    "# HELP custom Custom counter.
+# TYPE custom counter
+custom_total 1
+
+# HELP custom Custom gauge.
+# TYPE custom gauge
+custom 1
+"
+  )
 
   testthat::expect_silent(reg$reset_all())
 })

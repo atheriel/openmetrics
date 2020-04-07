@@ -4,6 +4,7 @@
 \alias{registry}
 \alias{global_registry}
 \alias{collect_metrics}
+\alias{render_metrics}
 \title{Metric Registries}
 \usage{
 registry()
@@ -11,6 +12,8 @@ registry()
 global_registry()
 
 collect_metrics(registry = global_registry())
+
+render_metrics(registry = global_registry())
 }
 \arguments{
 \item{registry}{A \code{Registry} object, defaulting to the shared global one.}
@@ -19,5 +22,5 @@ collect_metrics(registry = global_registry())
 A registry is a collection of one or more metrics. By default, metrics are
 added to the \code{global_registry()}, but new registries can also be created with
 \code{registry()}. Use \code{collect_metrics()} to return all metrics that a registry
-is aware of (usually for rendering).
+is aware of, or \code{render_metrics()} to render all of them in aggregate.
 }

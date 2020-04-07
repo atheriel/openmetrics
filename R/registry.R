@@ -5,7 +5,7 @@
 #' A registry is a collection of one or more metrics. By default, metrics are
 #' added to the `global_registry()`, but new registries can also be created with
 #' `registry()`. Use `collect_metrics()` to return all metrics that a registry
-#' is aware of (usually for rendering).
+#' is aware of, or `render_metrics()` to render all of them in aggregate.
 #'
 #' @name registry
 #' @export
@@ -24,6 +24,13 @@ global_registry <- function() {
 #' @export
 collect_metrics <- function(registry = global_registry()) {
   registry$collect()
+}
+
+#' @param registry A `Registry` object, defaulting to the shared global one.
+#' @rdname registry
+#' @export
+render_metrics <- function(registry = global_registry()) {
+  registry$render_all()
 }
 
 Registry <- R6::R6Class(

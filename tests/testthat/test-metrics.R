@@ -38,7 +38,7 @@ testthat::test_that("Metrics work as expected", {
   out <- collect_metrics(reg)
   testthat::expect_equal(length(out), 3)
   testthat::expect_equal(
-    reg$render_all(),
+    render_metrics(reg),
     '# HELP count Custom counter.
 # TYPE count counter
 count_total 1
@@ -100,7 +100,7 @@ testthat::test_that("Metrics with labels work as expected", {
   )
 
   testthat::expect_equal(
-    reg$render_all(),
+    render_metrics(reg),
     '# HELP count Custom counter.
 # TYPE count counter
 count_total{method="GET",endpoint="/"} 6
@@ -155,5 +155,4 @@ testthat::test_that("Default process metrics work as expected", {
   # Unregister support, not yet exported.
   testthat::expect_equal(collector$unregister(), supported)
   testthat::expect_equal(length(collect_metrics(reg)), 0)
-  cat(reg$render_all())
 })

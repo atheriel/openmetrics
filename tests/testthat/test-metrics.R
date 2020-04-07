@@ -17,8 +17,12 @@ testthat::test_that("Metrics work as expected", {
     regexp = "Invalid metric name"
   )
 
+  # Unregister/re-register behaviour.
   dropped <- counter_metric("dropped", "Not included.")
-  dropped$unregister()
+  testthat::expect_true(dropped$unregister())
+  testthat::expect_false(dropped$unregister())
+  dropped <- counter_metric("dropped", "Not included.")
+  testthat::expect_true(dropped$unregister())
 
   gauge <- gauge_metric("value", "Custom gauge.", registry = reg)
   gauge$set(51.7)

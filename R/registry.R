@@ -54,15 +54,19 @@ Registry <- R6::R6Class(
 
     unregister = function(name, type) {
       row <- which(private$index$name == name)
-      if (length(row) != 0) {
+      if (length(row) != 0 && is.environment(private$metrics[[row]])) {
         # We don't need to modify the data frame.
-        private$metrics[[row]] <- NULL
+        # Note: Use NA instead of NULL to prevent entries from being dropped.
+        private$metrics[[row]] <- NA
+        invisible(TRUE)
+      } else {
+        invisible(FALSE)
       }
     },
 
     metric = function(name, type) {
       row <- which(private$index$name == name & private$index$type == type)
-      if (length(row) != 0) {
+      if (length(row) != 0 && is.environment(private$metrics[[row]])) {
         private$metrics[[row]]
       } else {
         NULL
@@ -70,7 +74,7 @@ Registry <- R6::R6Class(
     },
 
     collect = function() {
-      private$metrics[vapply(private$metrics, length, integer(1)) != 0]
+      private$metrics[vapply(private$metrics, is.environment, logical(1))]
     },
 
     render_all = function() {

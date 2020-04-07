@@ -144,3 +144,16 @@ dist_count{method="POST",endpoint="/"} 1
 # EOF'
   )
 })
+
+testthat::test_that("Default process metrics work as expected", {
+  supported <- if(grepl("linux", R.version$os, fixed = TRUE)) 7 else 1
+  reg <- registry()
+  collector <- register_default_metrics(reg)
+  testthat::expect_equal(length(collect_metrics(reg)), supported)
+  testthat::expect_identical(register_default_metrics(reg), collector)
+
+  # Unregister support, not yet exported.
+  testthat::expect_equal(collector$unregister(), supported)
+  testthat::expect_equal(length(collect_metrics(reg)), 0)
+  cat(reg$render_all())
+})

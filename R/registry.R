@@ -36,6 +36,7 @@ Registry <- R6::R6Class(
         name = character(), type = character(), stringsAsFactors = FALSE,
         check.names = FALSE, check.rows = FALSE
       )
+      private$collectors <- list()
     },
 
     register = function(name, type, metric) {
@@ -52,12 +53,25 @@ Registry <- R6::R6Class(
       }
     },
 
+    register_collector = function(name, collector) {
+      private$collectors[[name]] <- collector
+    },
+
     unregister = function(name, type) {
       row <- which(private$index$name == name)
       if (length(row) != 0 && is.environment(private$metrics[[row]])) {
         # We don't need to modify the data frame.
         # Note: Use NA instead of NULL to prevent entries from being dropped.
         private$metrics[[row]] <- NA
+        invisible(TRUE)
+      } else {
+        invisible(FALSE)
+      }
+    },
+
+    unregister_collector = function(name) {
+      if (!is.null(private$collectors[[name]])) {
+        private$collectors[[name]] <- NULL
         invisible(TRUE)
       } else {
         invisible(FALSE)
@@ -73,7 +87,14 @@ Registry <- R6::R6Class(
       }
     },
 
+    collector = function(name) {
+      private$collectors[[name]]
+    },
+
     collect = function() {
+      for (collector in private$collectors) {
+        collector$update()
+      }
       private$metrics[vapply(private$metrics, is.environment, logical(1))]
     },
 
@@ -89,7 +110,7 @@ Registry <- R6::R6Class(
     }
   ),
   private = list(
-    index = NULL, metrics = NULL
+    index = NULL, metrics = NULL, collectors = NULL
   )
 )
 

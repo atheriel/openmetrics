@@ -242,8 +242,14 @@ Histogram <- R6::R6Class(
     initialize = function(name, help, buckets = 2 ^ (0:11), ...,
                           registry = global_registry()) {
       super$initialize(name, help, type = "histogram", ..., registry = registry)
-      private$buckets <- c(sort(buckets), Inf)
-      private$le <- c(sprintf("%.1f", (sort(buckets))), "+Inf")
+      buckets <- sort(buckets)
+      private$buckets <- c(buckets, Inf)
+      # Note: Buckets without a .0 seem to need them to satisfy the parser, but
+      # otherwise the usual numeric formatting seems to be acceptable.
+      buckets_str <- as.character(buckets)
+      have_digits <- abs(buckets - trunc(buckets)) > 0
+      buckets_str[!have_digits] <- sprintf("%.1f", buckets[!have_digits])
+      private$le <- c(buckets_str, "+Inf")
       self$reset()
     },
 

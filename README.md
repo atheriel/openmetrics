@@ -15,7 +15,8 @@ them on a `/metrics` endpoint, where they can be consumed by Prometheus
 services.
 
 The package includes built-in support for
-[Plumber](https://www.rplumber.io/) applications, but is highly
+[Plumber](https://www.rplumber.io/) and
+[Shiny](https://shiny.rstudio.com/) applications, but is highly
 extensible.
 
 ## Use with Plumber
@@ -54,6 +55,27 @@ scrape_configs:
     password: opensesame
   # ...
 ```
+
+## Use with Shiny
+
+You can also wrap an existing Shiny app object to add metrics on
+reactive flush duration and a running session count. In your `app.R`
+file, you can use something like the following:
+
+``` r
+app <- shiny::shinyApp(...)
+app <- register_shiny_metrics(app)
+app
+```
+
+Which will be picked up by `shiny::runApp()`.
+
+Again, this will automatically create a `/metrics` endpoint that exposes
+these metrics (and any others you have defined).
+
+**This feature should be considered experimental**. It relies on certain
+unstable Shiny internals to add the `/metrics` endpoint, which [is not
+usually possible](https://github.com/rstudio/shiny/issues/2395).
 
 ## Default Process Metrics
 

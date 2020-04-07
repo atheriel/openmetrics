@@ -14,7 +14,7 @@ gauge_metric(name, help, ..., registry = global_registry())
 histogram_metric(
   name,
   help,
-  buckets = 2^(0:11),
+  buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
   ...,
   registry = global_registry()
 )
@@ -28,7 +28,9 @@ histogram_metric(
 
 \item{registry}{Where to register the metric for later retrieval.}
 
-\item{buckets}{A sequence of buckets to bin observations into.}
+\item{buckets}{A sequence of buckets to bin observations into. Defaults to
+Prometheus's suggested buckets, which are a good fit for measuring
+user-visible latency in seconds (e.g. for web services).}
 }
 \description{
 A metric is a measure which can be aggregated into a time series, and comes

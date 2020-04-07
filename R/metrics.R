@@ -33,11 +33,13 @@ gauge_metric <- function(name, help, ..., registry = global_registry()) {
   }
 }
 
-#' @param buckets A sequence of buckets to bin observations into.
+#' @param buckets A sequence of buckets to bin observations into. Defaults to
+#'   Prometheus's suggested buckets, which are a good fit for measuring
+#'   user-visible latency in seconds (e.g. for web services).
 #' @rdname metrics
 #' @export
-histogram_metric <- function(name, help, buckets = 2 ^ (0:11), ...,
-                             registry = global_registry()) {
+histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
+                             ..., registry = global_registry()) {
   existing <- registry$metric(name, type = "histogram")
   if (is.null(existing)) {
     Histogram$new(
@@ -239,8 +241,8 @@ Gauge <- R6::R6Class(
 Histogram <- R6::R6Class(
   "Histogram", inherit = Metric,
   public = list(
-    initialize = function(name, help, buckets = 2 ^ (0:11), ...,
-                          registry = global_registry()) {
+    initialize = function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
+                          ..., registry = global_registry()) {
       super$initialize(name, help, type = "histogram", ..., registry = registry)
       buckets <- sort(buckets)
       private$buckets <- c(buckets, Inf)

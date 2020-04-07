@@ -30,7 +30,9 @@ testthat::test_that("Metrics work as expected", {
   gauge$reset()
   testthat::expect_equal(gauge$inc(), 1)
 
-  hist <- histogram_metric("dist", "Custom histogram.", registry = reg)
+  hist <- histogram_metric(
+    "dist", "Custom histogram.", buckets = 2 ^ (0:11), registry = reg
+  )
   testthat::expect_equal(hist$observe(51.7), 51.7)
   testthat::expect_equal(hist$observe(10), 61.7)
   testthat::expect_equal(hist$observe(600), 661.7)
@@ -111,33 +113,31 @@ value{method="GET",endpoint="/"} 10
 value{method="POST",endpoint="/"} 1
 # HELP dist Custom histogram.
 # TYPE dist histogram
+dist_bucket{method="GET",endpoint="/",le="0.005"} 0
+dist_bucket{method="GET",endpoint="/",le="0.01"} 0
+dist_bucket{method="GET",endpoint="/",le="0.025"} 0
+dist_bucket{method="GET",endpoint="/",le="0.05"} 0
+dist_bucket{method="GET",endpoint="/",le="0.1"} 0
+dist_bucket{method="GET",endpoint="/",le="0.25"} 0
+dist_bucket{method="GET",endpoint="/",le="0.5"} 0
 dist_bucket{method="GET",endpoint="/",le="1.0"} 0
-dist_bucket{method="GET",endpoint="/",le="2.0"} 0
-dist_bucket{method="GET",endpoint="/",le="4.0"} 0
-dist_bucket{method="GET",endpoint="/",le="8.0"} 0
-dist_bucket{method="GET",endpoint="/",le="16.0"} 1
-dist_bucket{method="GET",endpoint="/",le="32.0"} 1
-dist_bucket{method="GET",endpoint="/",le="64.0"} 2
-dist_bucket{method="GET",endpoint="/",le="128.0"} 2
-dist_bucket{method="GET",endpoint="/",le="256.0"} 2
-dist_bucket{method="GET",endpoint="/",le="512.0"} 2
-dist_bucket{method="GET",endpoint="/",le="1024.0"} 2
-dist_bucket{method="GET",endpoint="/",le="2048.0"} 2
+dist_bucket{method="GET",endpoint="/",le="2.5"} 0
+dist_bucket{method="GET",endpoint="/",le="5.0"} 0
+dist_bucket{method="GET",endpoint="/",le="10.0"} 1
 dist_bucket{method="GET",endpoint="/",le="+Inf"} 2
 dist_sum{method="GET",endpoint="/"} 61.7
 dist_count{method="GET",endpoint="/"} 2
+dist_bucket{method="POST",endpoint="/",le="0.005"} 0
+dist_bucket{method="POST",endpoint="/",le="0.01"} 0
+dist_bucket{method="POST",endpoint="/",le="0.025"} 0
+dist_bucket{method="POST",endpoint="/",le="0.05"} 0
+dist_bucket{method="POST",endpoint="/",le="0.1"} 0
+dist_bucket{method="POST",endpoint="/",le="0.25"} 0
+dist_bucket{method="POST",endpoint="/",le="0.5"} 0
 dist_bucket{method="POST",endpoint="/",le="1.0"} 0
-dist_bucket{method="POST",endpoint="/",le="2.0"} 0
-dist_bucket{method="POST",endpoint="/",le="4.0"} 0
-dist_bucket{method="POST",endpoint="/",le="8.0"} 0
-dist_bucket{method="POST",endpoint="/",le="16.0"} 0
-dist_bucket{method="POST",endpoint="/",le="32.0"} 0
-dist_bucket{method="POST",endpoint="/",le="64.0"} 0
-dist_bucket{method="POST",endpoint="/",le="128.0"} 1
-dist_bucket{method="POST",endpoint="/",le="256.0"} 1
-dist_bucket{method="POST",endpoint="/",le="512.0"} 1
-dist_bucket{method="POST",endpoint="/",le="1024.0"} 1
-dist_bucket{method="POST",endpoint="/",le="2048.0"} 1
+dist_bucket{method="POST",endpoint="/",le="2.5"} 0
+dist_bucket{method="POST",endpoint="/",le="5.0"} 0
+dist_bucket{method="POST",endpoint="/",le="10.0"} 0
 dist_bucket{method="POST",endpoint="/",le="+Inf"} 1
 dist_sum{method="POST",endpoint="/"} 100
 dist_count{method="POST",endpoint="/"} 1

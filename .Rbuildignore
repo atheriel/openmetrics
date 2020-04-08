@@ -1,3 +1,4 @@
 ^openmetrics\.Rproj$
 ^\.Rproj\.user$
 ^tools/.*$
+^README\.Rmd$

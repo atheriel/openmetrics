@@ -1,5 +1,5 @@
 Package: openmetrics
-Title: An 'OpenMetrics'/'Prometheus' Client for R
+Title: A 'Prometheus' Client for R Using the 'OpenMetrics' Format
 Version: 0.0.0.9000
 Authors@R: c(
   person("Aaron", "Jacobs", role = c("aut", "cre"),
@@ -8,7 +8,11 @@ Authors@R: c(
   )
 Maintainer: Aaron Jacobs <aaron.jacobs@crescendotechnology.com>
 MaintainerSlack: @aaronj
-Description: What the package does (one paragraph).
+Description: Provides a client for the open-source monitoring and alerting
+  toolkit, 'Prometheus', that emits metrics in the 'OpenMetrics' format. Allows
+  users to automatically instrument 'Plumber' and 'Shiny' applications, collect
+  standard process metrics, as well as define custom counter, gauge, and
+  histogram metrics of their own.
 License: MIT + file LICENSE
 URL: https://github.com/atheriel/openmetrics
 BugReports: https://github.com/atheriel/openmetrics/issues

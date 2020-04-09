@@ -10,6 +10,8 @@ Maintainer: Aaron Jacobs <aaron.jacobs@crescendotechnology.com>
 MaintainerSlack: @aaronj
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
+URL: https://github.com/atheriel/openmetrics
+BugReports: https://github.com/atheriel/openmetrics/issues
 Imports:
   R6
 Suggests:

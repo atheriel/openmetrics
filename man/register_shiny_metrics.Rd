@@ -18,4 +18,10 @@ A modified Shiny app object.
 Automatically wrap a Shiny app, adding metrics for the current session count
 and the duration of reactive flushes, and then expose them on a \verb{/metrics}
 endpoint.
+
+The endpoint will check the \code{METRICS_HTTP_AUTHORIZATION} environment
+variable, and if present will use it as the expected
+\href{https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization}{\code{Authorization}}
+header of the request to the \verb{/metrics} endpoint. This can be used to
+implement basic HTTP authentication for access to runtime metrics.
 }

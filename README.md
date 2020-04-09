@@ -71,7 +71,8 @@ app
 Which will be picked up by `shiny::runApp()`.
 
 Again, this will automatically create a `/metrics` endpoint that exposes
-these metrics (and any others you have defined).
+these metrics (and any others you have defined). It supports the same
+authentication method as well.
 
 **This feature should be considered experimental**. It relies on certain
 unstable Shiny internals to add the `/metrics` endpoint, which [is not

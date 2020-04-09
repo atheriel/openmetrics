@@ -5,6 +5,10 @@
 
 <!-- badges: start -->
 
+[![travis-ci build
+status](https://travis-ci.org/atheriel/openmetrics.svg?branch=master)](https://travis-ci.org/atheriel/openmetrics)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/openmetrics)](https://cran.r-project.org/package=openmetrics)
 <!-- badges: end -->
 
 **openmetrics** is an opinionated client for

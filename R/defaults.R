@@ -46,10 +46,6 @@ DefaultCollector <- R6::R6Class(
             "process_open_fds", "Number of open file descriptors.",
             registry = registry
           ),
-          "process_max_fds" = gauge_metric(
-            "process_max_fds", "Maximum number of open file descriptors.",
-            registry = registry
-          ),
           "process_resident_memory_bytes" = gauge_metric(
             "process_resident_memory_bytes", "Resident memory size in bytes.",
             registry = registry
@@ -84,12 +80,6 @@ DefaultCollector <- R6::R6Class(
         # list.files() opens a fd of its own, don't count that.
         open_fds <- length(list.files("/proc/self/fd")) - 1
         private$metrics$process_open_fds$set(open_fds)
-
-        # TODO: Do we really need to do this every time?
-        limits <- readLines("/proc/self/limits", encoding = "UTF-8")
-        max_open_fds <- limits[grepl("Max open files", limits, fixed = TRUE)]
-        max_open_fds <- as.numeric(strsplit(max_open_fds, "\\s\\s+")[[1]][2])
-        private$metrics$process_max_fds$set(max_open_fds)
 
         status <- readLines("/proc/self/status", encoding = "UTF-8")
         vmstats <- status[grepl("^Vm(Size|RSS|Data)", status)]

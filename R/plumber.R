@@ -1,7 +1,15 @@
 #' Metrics for Plumber APIs
 #'
+#' @description
+#'
 #' Automatically wrap a Plumber API app, adding metrics for HTTP request count
 #' and duration, and then expose them on a `/metrics` endpoint.
+#'
+#' The endpoint will check the `METRICS_HTTP_AUTHORIZATION` environment
+#' variable, and if present will use it as the expected
+#' [`Authorization`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization)
+#' header of the request to the `/metrics` endpoint. This can be used to
+#' implement basic HTTP authentication for access to runtime metrics.
 #'
 #' @param app A Plumber router object.
 #' @param registry A `Registry` object. See [registry()].
@@ -67,7 +75,19 @@ register_plumber_metrics <- function(app, registry = global_registry()) {
   app$registerHook("preroute", preroute_hook)
   app$registerHook("postroute", postroute_hook)
   app$handle("GET", "/metrics", function(req, res) {
+    # Check for authorization, if set.
+    auth_header <- Sys.getenv("METRICS_HTTP_AUTHORIZATION")
+    if (nchar(auth_header) > 0 && (is.null(req$HTTP_AUTHORIZATION) ||
+                                   req$HTTP_AUTHORIZATION != auth_header)) {
+      res$setHeader("Content-Type", "text/plain")
+      res$setHeader("WWW-Authenticate", "Basic realm=\"Runtime metrics\"")
+      res$status <- 401L
+      res$body <- "Unauthorized"
+      return(res)
+    }
+
     res$setHeader("Content-Type", "text/plain;version=0.0.4")
+    res$status <- 200L
     res$body <- registry$render_all()
     res
   })

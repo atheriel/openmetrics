@@ -42,6 +42,29 @@ srv$run()
 This will automatically create a `/metrics` endpoint that exposes these metrics
 (and any others you have defined).
 
+### Authentication
+
+To add authentication to this endpoint, set the `METRICS_HTTP_AUTHORIZATION`
+environment variable to the expected [`Authorization`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization)
+header you want Prometheus to use. For example, to grant access to the username
+"aladdin" with password "opensesame":
+
+```
+Sys.setenv(METRICS_HTTP_AUTHORIZATION = "Basic YWxhZGRpbjpvcGVuc2VzYW1l")
+```
+
+Meanwhile, in your Prometheus configuration:
+
+```yaml
+scrape_configs:
+# ...
+- job_name: my-plumber-api
+  basic_auth:
+    username: aladdin
+    password: opensesame
+  # ...
+```
+
 ## Default Process Metrics
 
 You can enable the [default process metrics](https://prometheus.io/docs/instrumenting/writing_clientlibs/#process-metrics)

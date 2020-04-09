@@ -154,3 +154,8 @@ httpuv::runServer(
   - Most of the default process metrics are absent on non-Linux systems.
     This is basically because they were designed with Linux in mind, and
     very few Prometheus clients support them for anything but Linux.
+
+## License
+
+The package is made available under the terms of the MIT license. See
+`LICENSE` for details.

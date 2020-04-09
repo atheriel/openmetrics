@@ -3,11 +3,9 @@ Title: A 'Prometheus' Client for R Using the 'OpenMetrics' Format
 Version: 0.0.0.9000
 Authors@R: c(
   person("Aaron", "Jacobs", role = c("aut", "cre"),
-         email = "aaron.jacobs@crescendotechnology.com"),
+         email = "atheriel@gmail.com"),
   person("Crescendo Technology Ltd.", role = "cph")
   )
-Maintainer: Aaron Jacobs <aaron.jacobs@crescendotechnology.com>
-MaintainerSlack: @aaronj
 Description: Provides a client for the open-source monitoring and alerting
   toolkit, 'Prometheus', that emits metrics in the 'OpenMetrics' format. Allows
   users to automatically instrument 'Plumber' and 'Shiny' applications, collect

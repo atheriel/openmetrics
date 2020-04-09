@@ -23,6 +23,21 @@ The package includes built-in support for
 [Shiny](https://shiny.rstudio.com/) applications, but is highly
 extensible.
 
+## Installation
+
+You can install **openmetrics** from CRAN with
+
+``` r
+install.packages("openmetrics")
+```
+
+or from GitHub with
+
+``` r
+# install.packages("remotes")
+remotes::install_github("atheriel/openmetrics")
+```
+
 ## Use with Plumber
 
 You can easily wrap an existing Plumber router object to add metrics for

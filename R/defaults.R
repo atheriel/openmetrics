@@ -5,10 +5,11 @@
 #' systems.
 #'
 #' @param registry A `Registry` object. See [registry()].
+#' @return Called for side effects only.
 #'
 #' @examples
 #' register_default_metrics()
-#' collect_metrics()
+#' render_metrics()
 #'
 #' @export
 register_default_metrics = function(registry = global_registry()) {

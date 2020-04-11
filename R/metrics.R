@@ -3,14 +3,68 @@
 #' @description
 #'
 #' A metric is a measure which can be aggregated into a time series, and comes
-#' in one of four types: counters, gauges, histograms, and summaries.
+#' in one of three types: counters, gauges, and histograms.
+#'
+#' Metrics must have a unique name.
 #'
 #' @param name The name of the metric.
 #' @param help A brief, one-sentence explanation of the metric's meaning.
 #' @param ... Currently ignored.
 #' @param registry Where to register the metric for later retrieval.
 #'
-#' @seealso The official documenation on [Metric Types](https://prometheus.io/docs/concepts/metric_types/).
+#' @return An object with methods to manipulate the metric. See details.
+#'
+#' @details
+#'
+#' All metric objects have a `reset()` method that reverts the underlying value
+#' (or values) to zero, an `unregister()` method that removes them from the
+#' registry they were created in, and a `render()` method that writes a
+#' representation of the metric in the text-based [OpenMetrics
+#' format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format).
+#' Normally, [render_metrics()] is used instead.
+#'
+#' In addition, various metrics have their own methods:
+#'
+#' * `inc(by = 1, ...)`: Increments the metric by some positive number,
+#'   defaulting to 1. Further parameters are interpreted as labels. Available
+#'   for counters and gauges.
+#'
+#' * `dec(by = 1, ...)`: Decrements the metric by some number, defaulting to 1.
+#'   Further parameters are interpreted as labels. Available for gauges.
+#'
+#' * `set(value, ...)`: Sets the metric to some number. Further parameters are
+#'   interpreted as labels. Available for gauges.
+#'
+#' * `set_to_current_time(...)`: Sets the metric to the current time, in seconds
+#'   from the Unix epoch. Further parameters are interpreted as labels.
+#'   Available for gauges.
+#'
+#' * `observe(value, ...)`: Records an observation of some number. Further
+#'   parameters are interpreted as labels. Available for histograms.
+#'
+#' @examples
+#' meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
+#' meows$inc(cat = "Shamus") # Count one meow from Shamus.
+#' meows$inc(3) # Count three meows of unknown origin.
+#' meows$render()
+#'
+#' thermostat <- gauge_metric("thermostat", "Thermostat display.")
+#' thermostat$set(21.3) # Read from the display...
+#' thermostat$dec(2) # ... and then turn it down 2 degrees.
+#' thermostat$render()
+#'
+#' temperature <- histogram_metric(
+#'   "temperature", "Ambient room temperature measurements.",
+#'   buckets = c(10, 15, 20, 22, 25), room = "kitchen"
+#' )
+#' set.seed(9090)
+#' # Simulate taking ambient temperature samples.
+#' for (measure in rnorm(20, mean = 21.5)) {
+#'   temperature$observe(measure, room = sample(c("kitchen", "bathroom"), 1))
+#' }
+#' temperature$render()
+#'
+#' @seealso The official documentation on [Metric Types](https://prometheus.io/docs/concepts/metric_types/).
 #' @name metrics
 #' @export
 counter_metric <- function(name, help, ..., registry = global_registry()) {

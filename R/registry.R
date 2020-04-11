@@ -3,9 +3,19 @@
 #' @description
 #'
 #' A registry is a collection of one or more metrics. By default, metrics are
-#' added to the `global_registry()`, but new registries can also be created with
-#' `registry()`. Use `collect_metrics()` to return all metrics that a registry
-#' is aware of, or `render_metrics()` to render all of them in aggregate.
+#' added to the object returned by `global_registry()`, but new registries can
+#' also be created with `registry()`. Use `collect_metrics()` to return all
+#' metrics that a registry is aware of, or `render_metrics()` to render all of
+#' them in aggregate.
+#'
+#' @return `registry()` and `global_registry()` return `Registry` objects (see
+#'   Details), while `collect_metrics()` returns a list of [`metrics`] and
+#'   `render_metrics()` returns a string.
+#'
+#' @details
+#'
+#' `Registry` objects have methods, but they are not intended to be called by
+#' users and have no stable API.
 #'
 #' @name registry
 #' @export

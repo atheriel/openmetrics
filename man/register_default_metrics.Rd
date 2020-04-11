@@ -9,6 +9,9 @@ register_default_metrics(registry = global_registry())
 \arguments{
 \item{registry}{A \code{Registry} object. See \code{\link[=registry]{registry()}}.}
 }
+\value{
+Called for side effects only.
+}
 \description{
 Registers the \href{https://prometheus.io/docs/instrumenting/writing_clientlibs/#process-metrics}{standard process metrics}
 for Prometheus clients. Not all metrics are supported on all operating
@@ -16,6 +19,6 @@ systems.
 }
 \examples{
 register_default_metrics()
-collect_metrics()
+render_metrics()
 
 }

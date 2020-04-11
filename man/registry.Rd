@@ -18,9 +18,19 @@ render_metrics(registry = global_registry())
 \arguments{
 \item{registry}{A \code{Registry} object, defaulting to the shared global one.}
 }
+\value{
+\code{registry()} and \code{global_registry()} return \code{Registry} objects (see
+Details), while \code{collect_metrics()} returns a list of \code{\link{metrics}} and
+\code{render_metrics()} returns a string.
+}
 \description{
 A registry is a collection of one or more metrics. By default, metrics are
-added to the \code{global_registry()}, but new registries can also be created with
-\code{registry()}. Use \code{collect_metrics()} to return all metrics that a registry
-is aware of, or \code{render_metrics()} to render all of them in aggregate.
+added to the object returned by \code{global_registry()}, but new registries can
+also be created with \code{registry()}. Use \code{collect_metrics()} to return all
+metrics that a registry is aware of, or \code{render_metrics()} to render all of
+them in aggregate.
+}
+\details{
+\code{Registry} objects have methods, but they are not intended to be called by
+users and have no stable API.
 }

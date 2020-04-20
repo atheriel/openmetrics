@@ -1,3 +1,9 @@
+# openmetrics 0.1.0.9000
+
+* Fixes innacurate CPU usage when using `register_default_metrics()`.
+  Previously, this would include the total elapsed time for the process (as
+  opposed to the CPU time that was actually used).
+
 # openmetrics 0.1.0
 
 * Initial release. **openmetrics** is an opinionated Prometheus and OpenMetrics

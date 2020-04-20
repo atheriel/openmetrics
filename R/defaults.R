@@ -75,7 +75,9 @@ DefaultCollector <- R6::R6Class(
     },
 
     update = function() {
-      private$metrics$process_cpu_seconds_total$set(sum(proc.time(), na.rm = TRUE))
+      private$metrics$process_cpu_seconds_total$set(
+        sum(proc.time()[1:2], na.rm = TRUE)
+      )
 
       if (private$has_procfs) {
         # list.files() opens a fd of its own, don't count that.

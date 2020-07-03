@@ -1,3 +1,9 @@
+# openmetrics 0.1.1.9000
+
+* Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing
+  metrics to a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/)
+  instance.
+
 # openmetrics 0.1.1
 
 * Fixes inaccurate CPU usage when using `register_default_metrics()`.

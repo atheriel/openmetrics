@@ -206,15 +206,30 @@ httpuv::runServer(
 )
 ```
 
+## Pushgateway Support
+
+Some workloads may not want to run an HTTP server to expose metrics,
+especially in the case of short-lived batch jobs. For these cases
+metrics can also be manually “pushed” to a Prometheus Pushgateway
+instance, though [there are drawbacks to this
+approach](https://prometheus.io/docs/practices/pushing/).
+
+`push_to_gateway()` can be used to push metrics, and
+`delete_from_gateway()` can be used to clean them up when the workload
+is finished:
+
+``` r
+push_to_gateway("localhost:9091", job = "openmetrics-readme")
+# Some time later...
+delete_from_gateway("localhost:9091", job = "openmetrics-readme")
+```
+
 ## Limitations
 
   - The Summary metric is not available, as it is not required by the
     spec if a Histogram is available. It is also difficult to implement,
     and [could be considered a design
     error](https://www.robustperception.io/how-does-a-prometheus-summary-work).
-
-  - No support yet for the Prometheus
-    [Pushgateway](https://prometheus.io/docs/instrumenting/pushing/).
 
   - Most of the default process metrics are absent on non-Linux systems.
     This is basically because they were designed with Linux in mind, and

@@ -2,9 +2,11 @@
 
 export(collect_metrics)
 export(counter_metric)
+export(delete_from_gateway)
 export(gauge_metric)
 export(global_registry)
 export(histogram_metric)
+export(push_to_gateway)
 export(register_default_metrics)
 export(register_plumber_metrics)
 export(register_shiny_metrics)

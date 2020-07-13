@@ -1,4 +1,4 @@
-# openmetrics 0.1.1.9000
+# openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing
   metrics to a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/)

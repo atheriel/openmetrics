@@ -62,6 +62,9 @@ from the Unix epoch. Further parameters are interpreted as labels.
 Available for gauges.
 \item \code{observe(value, ...)}: Records an observation of some number. Further
 parameters are interpreted as labels. Available for histograms.
+\item \code{time(expr, ...)}: Records an observation for the time elapsed evaluating
+\code{expr}, in seconds. Further parameters are interpreted as labels.
+Available for histograms.
 }
 }
 \examples{

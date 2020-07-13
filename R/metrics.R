@@ -42,6 +42,10 @@
 #' * `observe(value, ...)`: Records an observation of some number. Further
 #'   parameters are interpreted as labels. Available for histograms.
 #'
+#' * `time(expr, ...)`: Records an observation for the time elapsed evaluating
+#'   `expr`, in seconds. Further parameters are interpreted as labels.
+#'   Available for histograms.
+#'
 #' @examples
 #' meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
 #' meows$inc(cat = "Shamus") # Count one meow from Shamus.
@@ -366,6 +370,14 @@ Histogram <- R6::R6Class(
           private$sum[[key]] <- private$sum[[key]] + value
         }
       }
+    },
+
+    time = function(expr, ...) {
+      start <- Sys.time()
+      expr
+      elapsed <- unclass(difftime(Sys.time(), start, units = "secs"))
+      self$observe(elapsed, ...)
+      elapsed
     },
 
     reset = function() {

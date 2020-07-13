@@ -4,6 +4,9 @@
   metrics to a [Prometheus Pushgateway](https://prometheus.io/docs/instrumenting/pushing/)
   instance.
 
+* Histogram metrics now have a built-in `time()` method for collecting
+  observations on the duration of an expression.
+
 # openmetrics 0.1.1
 
 * Fixes inaccurate CPU usage when using `register_default_metrics()`.

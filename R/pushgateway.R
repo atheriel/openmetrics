@@ -36,9 +36,7 @@ push_to_gateway <- function(url, job, instance = NA,
   } else {
     path <- sprintf("/metrics/job/%s/instance/%s", job, instance)
   }
-  rendered <- render_metrics(registry = registry)
-  # Pushgateway seems to barf on OpenMetric's "# EOF" trailer, so scrub that.
-  rendered <- sub("# EOF", "", rendered, fixed = TRUE)
+  rendered <- registry$render_all(format = "pushgateway")
   response <- httr::RETRY(
     "POST", url, path = path, body = rendered, encode = "form",
     # Pushgateway will send a 400 if the metric conflicts with an existing one,

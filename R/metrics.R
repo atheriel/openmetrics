@@ -143,7 +143,7 @@ Metric <- R6::R6Class(
 
     header = function(name = private$name) {
       sprintf(
-        "# HELP %s %s\n# TYPE %s %s", private$name, private$help, name,
+        "# HELP %s %s\n# TYPE %s %s", name, private$help, name,
         private$type
       )
     }
@@ -172,18 +172,20 @@ Counter <- R6::R6Class(
       # _total but help/type text do not. However, some existing tools will
       # barf on this input, notably the Prometheus Pushgateway, so it must be
       # possible to circumvent.
-      name <- if (format == "openmetrics") {
-        private$name
+      if (format == "openmetrics") {
+        name <- private$name
+        fmt <- "%s\n%s_total %s\n"
+        fmt_labels <- "%s_total{%s} %s"
       } else {
-        sprintf("%s_total", private$name)
+        name <- sprintf("%s_total", private$name)
+        fmt <- "%s\n%s %s\n"
+        fmt_labels <- "%s{%s} %s"
       }
       if (is.null(private$labels)) {
-        sprintf(
-          "%s\n%s %s\n", private$header(name), name, private$value
-        )
+        sprintf(fmt, private$header(name), name, private$value)
       } else {
         entries <- vapply(ls(private$value), function(key) {
-          sprintf("%s{%s} %s", name, key, private$value[[key]])
+          sprintf(fmt_labels, name, key, private$value[[key]])
         }, character(1))
         sprintf(
           "%s\n%s\n", private$header(name), paste(entries, collapse = "\n")

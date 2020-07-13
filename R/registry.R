@@ -115,9 +115,15 @@ Registry <- R6::R6Class(
       private$metrics[vapply(private$metrics, is.environment, logical(1))]
     },
 
-    render_all = function() {
-      entries <- vapply(self$collect(), function(x) x$render(), character(1))
-      paste(c(entries, "# EOF"), collapse = "")
+    render_all = function(format = "openmetrics") {
+      entries <- vapply(
+        self$collect(), function(x) x$render(format = format), character(1)
+      )
+      if (format == "openmetrics") {
+        paste(c(entries, "# EOF"), collapse = "")
+      } else {
+        paste(entries, collapse = "")
+      }
     },
 
     reset_all = function() {

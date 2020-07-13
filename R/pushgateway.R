@@ -15,7 +15,8 @@
 #' @param instance A value for the `instance` label applied to all pushed
 #'   metrics, or `NA` to leave it unset.
 #' @param registry A `Registry` object, defaulting to the shared global one.
-#' @param ... Currently ignored.
+#' @param ... Additional named string arguments converted to labels. Beware
+#'   that these are not yet checked for URL safety.
 #'
 #' @return `NULL`, invisibly.
 #'
@@ -31,11 +32,10 @@
 #' @export
 push_to_gateway <- function(url, job, instance = NA,
                             registry = global_registry(), ...) {
-  if (is.na(instance)) {
-    path <- sprintf("/metrics/job/%s", job)
-  } else {
-    path <- sprintf("/metrics/job/%s/instance/%s", job, instance)
-  }
+  labels <- pushgateway_labels(job = job, instance = instance, ...)
+  path <- sprintf(
+    "/metrics/%s", paste(names(labels), labels, sep = "/", collapse = "/")
+  )
   rendered <- registry$render_all(format = "pushgateway")
   response <- httr::RETRY(
     "POST", url, path = path, body = rendered, encode = "form",
@@ -50,12 +50,19 @@ push_to_gateway <- function(url, job, instance = NA,
 #' @rdname pushgateway
 #' @export
 delete_from_gateway <- function(url, job, instance = NA, ...) {
-  if (is.na(instance)) {
-    path <- sprintf("/metrics/job/%s", job)
-  } else {
-    path <- sprintf("/metrics/job/%s/instance/%s", job, instance)
-  }
+  labels <- pushgateway_labels(job = job, instance = instance, ...)
+  path <- sprintf(
+    "/metrics/%s", paste(names(labels), labels, sep = "/", collapse = "/")
+  )
   response <- httr::RETRY("DELETE", url, path = path)
   httr::warn_for_status(response)
   invisible(NULL)
+}
+
+pushgateway_labels <- function(job, instance, ...) {
+  labels <- list(job = job)
+  labels$instance <- if (!is.na(instance)) instance
+  labels <- c(labels, list(...))
+  # TODO: Base64 encode URL-breaking labels.
+  parse_labels(labels)
 }

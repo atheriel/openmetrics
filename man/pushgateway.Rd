@@ -19,7 +19,8 @@ metrics, or \code{NA} to leave it unset.}
 
 \item{registry}{A \code{Registry} object, defaulting to the shared global one.}
 
-\item{...}{Currently ignored.}
+\item{...}{Additional named string arguments converted to labels. Beware
+that these are not yet checked for URL safety.}
 }
 \value{
 \code{NULL}, invisibly.

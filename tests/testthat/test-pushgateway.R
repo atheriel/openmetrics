@@ -16,18 +16,16 @@ testthat::test_that("Pushgateway interaction works as expected", {
   testthat::expect_silent(
     push_to_gateway(
       "http://localhost:9091", job = "openmetrics-tests-1", instance = "2",
-      registry = reg
+      pod = Sys.info()["nodename"], registry = reg
     )
   )
   testthat::expect_silent(
     delete_from_gateway(
       "http://localhost:9091", job = "openmetrics-tests-1", instance = "2",
-      registry = reg
+      pod = Sys.info()["nodename"]
     )
   )
   testthat::expect_silent(
-    delete_from_gateway(
-      "http://localhost:9091", job = "openmetrics-tests-1", registry = reg
-    )
+    delete_from_gateway("http://localhost:9091", job = "openmetrics-tests-1")
   )
 })

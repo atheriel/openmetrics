@@ -30,7 +30,7 @@ DefaultCollector <- R6::R6Class(
       private$has_procfs <- grepl("linux", R.version$os, fixed = TRUE)
       if (!private$has_procfs) {
         private$metrics <- list(
-          "process_cpu_seconds_total" = gauge_metric(
+          "process_cpu_seconds_total" = counter_metric(
             "process_cpu_seconds_total",
             "Total user and system CPU time spent in seconds.",
             registry = registry
@@ -38,7 +38,7 @@ DefaultCollector <- R6::R6Class(
         )
       } else {
         private$metrics <- list(
-          "process_cpu_seconds_total" = gauge_metric(
+          "process_cpu_seconds_total" = counter_metric(
             "process_cpu_seconds_total",
             "Total user and system CPU time spent in seconds.",
             registry = registry
@@ -75,9 +75,12 @@ DefaultCollector <- R6::R6Class(
     },
 
     update = function() {
-      private$metrics$process_cpu_seconds_total$set(
-        sum(proc.time()[1:2], na.rm = TRUE)
+      # Since process_cpu_seconds_total is a counter, we can't just set() it.
+      cputime <- sum(proc.time()[1:2], na.rm = TRUE)
+      private$metrics$process_cpu_seconds_total$inc(
+        cputime - private$last_cputime
       )
+      private$last_cputime <- cputime
 
       if (private$has_procfs) {
         # list.files() opens a fd of its own, don't count that.
@@ -104,5 +107,7 @@ DefaultCollector <- R6::R6Class(
       invisible(sum(unregistered))
     }
   ),
-  private = list(metrics = NULL, has_procfs = FALSE, registry = NULL)
+  private = list(
+    metrics = NULL, has_procfs = FALSE, registry = NULL, last_cputime = 0
+  )
 )

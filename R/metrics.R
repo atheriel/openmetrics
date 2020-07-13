@@ -141,10 +141,10 @@ Metric <- R6::R6Class(
   private = list(
     name = NULL, help = NULL, type = NULL, labels = NULL, registry = NULL,
 
-    header = function() {
+    header = function(name = private$name) {
       sprintf(
-        "# HELP %s %s\n# TYPE %s %s", private$name, private$help,
-        private$name, private$type
+        "# HELP %s %s\n# TYPE %s %s", private$name, private$help, name,
+        private$type
       )
     }
   )
@@ -167,17 +167,26 @@ Counter <- R6::R6Class(
       }
     },
 
-    render = function() {
+    render = function(format = "openmetrics") {
+      # Compatibility with OpenMetrics requires that metric names include
+      # _total but help/type text do not. However, some existing tools will
+      # barf on this input, notably the Prometheus Pushgateway, so it must be
+      # possible to circumvent.
+      name <- if (format == "openmetrics") {
+        private$name
+      } else {
+        sprintf("%s_total", private$name)
+      }
       if (is.null(private$labels)) {
         sprintf(
-          "%s\n%s_total %s\n", private$header(), private$name, private$value
+          "%s\n%s %s\n", private$header(name), name, private$value
         )
       } else {
         entries <- vapply(ls(private$value), function(key) {
-          sprintf("%s_total{%s} %s", private$name, key, private$value[[key]])
+          sprintf("%s{%s} %s", name, key, private$value[[key]])
         }, character(1))
         sprintf(
-          "%s\n%s\n", private$header(), paste(entries, collapse = "\n")
+          "%s\n%s\n", private$header(name), paste(entries, collapse = "\n")
         )
       }
     },
@@ -225,7 +234,7 @@ Gauge <- R6::R6Class(
       }
     },
 
-    render = function() {
+    render = function(format = "openmetrics") {
       if (is.null(private$labels)) {
         sprintf(
           "%s\n%s %s\n", private$header(), private$name, private$value
@@ -313,7 +322,7 @@ Histogram <- R6::R6Class(
       self$reset()
     },
 
-    render = function() {
+    render = function(format = "openmetrics") {
       if (is.null(private$labels)) {
         buckets <- paste0(
           private$name, "_bucket{le=\"", private$le, "\"} ", private$dist

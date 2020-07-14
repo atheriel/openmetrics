@@ -1,6 +1,7 @@
 ## Release summary
 
-This is a patch release, fixing one minor bug but making no API changes.
+This is a minor release, adding two new public functions and one new public
+method, as well as some compatibility fixes.
 
 ## Test environments
 

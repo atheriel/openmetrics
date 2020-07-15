@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 library(openmetrics)
 ```
 
-# openmetrics
+# openmetrics <img src='man/figures/logo.png' align="right" height="139" />
 
 <!-- badges: start -->
 [![travis-ci build status](https://travis-ci.org/atheriel/openmetrics.svg?branch=master)](https://travis-ci.org/atheriel/openmetrics)

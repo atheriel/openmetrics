@@ -156,3 +156,26 @@ testthat::test_that("Default process metrics work as expected", {
   testthat::expect_equal(collector$unregister(), supported)
   testthat::expect_equal(length(collect_metrics(reg)), 0)
 })
+
+testthat::test_that("Metric units work as expected", {
+  reg <- registry()
+
+  testthat::expect_error(
+    Counter$new(
+      "count_bytes", "Custom counter.", unit = "seconds", registry = reg
+    ),
+    regexp = "Metric name does not match unit"
+  )
+
+  counter <- Counter$new(
+    "count_seconds", "Custom counter.", unit = "seconds", registry = reg
+  )
+  testthat::expect_equal(
+    render_metrics(reg),
+    '# HELP count_seconds Custom counter.
+# TYPE count_seconds counter
+# UNIT count_seconds seconds
+count_seconds_total 0
+# EOF'
+  )
+})

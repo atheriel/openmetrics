@@ -111,7 +111,7 @@ histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0
 Metric <- R6::R6Class(
   "Metric",
   public = list(
-    initialize = function(name, help, type = "gauge", ...,
+    initialize = function(name, help, type = "gauge", ..., unit = NULL,
                           registry = global_registry()) {
       if (!grepl("^[a-zA-Z_:][a-zA-Z0-9_:]*$", name)) {
         stop("Invalid metric name: '", name, "'.")
@@ -119,6 +119,7 @@ Metric <- R6::R6Class(
       private$name <- name
       private$help <- escape_text(help)
       private$type <- type
+      private$unit <- unit
       private$registry <- registry
       private$labels <- parse_labels(list(...))
 
@@ -131,6 +132,11 @@ Metric <- R6::R6Class(
         )
       }
 
+      if (!is.null(private$unit) &&
+          !grepl(sprintf("_%s$", private$unit), private$name)) {
+        stop("Metric name does not match unit.")
+      }
+
       registry$register(name = name, type = type, self)
     },
 
@@ -140,12 +146,20 @@ Metric <- R6::R6Class(
   ),
   private = list(
     name = NULL, help = NULL, type = NULL, labels = NULL, registry = NULL,
+    unit = NULL,
 
     header = function(name = private$name) {
-      sprintf(
-        "# HELP %s %s\n# TYPE %s %s", name, private$help, name,
-        private$type
-      )
+      if (!is.null(private$unit)) {
+        sprintf(
+          "# HELP %s %s\n# TYPE %s %s\n# UNIT %s %s", name, private$help, name,
+          private$type, name, private$unit
+        )
+      } else {
+        sprintf(
+          "# HELP %s %s\n# TYPE %s %s", name, private$help, name,
+          private$type
+        )
+      }
     }
   )
 )
@@ -153,10 +167,12 @@ Metric <- R6::R6Class(
 Counter <- R6::R6Class(
   "Counter", inherit = Metric,
   public = list(
-    initialize = function(name, help, ..., registry = global_registry()) {
+    initialize = function(name, help, ..., unit = NULL, registry = global_registry()) {
       # Compatibility with OpenMetrics.
       name <- gsub("_total$", "", name)
-      super$initialize(name, help, type = "counter", ..., registry = registry)
+      super$initialize(
+        name, help, type = "counter", ..., unit = unit, registry = registry
+      )
       if (is.null(private$labels)) {
         # Fast version, just a value.
         private$value <- 0
@@ -225,8 +241,10 @@ Counter <- R6::R6Class(
 Gauge <- R6::R6Class(
   "Gauge", inherit = Metric,
   public = list(
-    initialize = function(name, help, ..., registry = global_registry()) {
-      super$initialize(name, help, type = "gauge", ..., registry = registry)
+    initialize = function(name, help, ..., unit = NULL, registry = global_registry()) {
+      super$initialize(
+        name, help, type = "gauge", ..., unit = unit, registry = registry
+      )
       if (is.null(private$labels)) {
         # Fast version, just a value.
         private$value <- 0
@@ -311,8 +329,10 @@ Histogram <- R6::R6Class(
   "Histogram", inherit = Metric,
   public = list(
     initialize = function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
-                          ..., registry = global_registry()) {
-      super$initialize(name, help, type = "histogram", ..., registry = registry)
+                          ..., unit = NULL, registry = global_registry()) {
+      super$initialize(
+        name, help, type = "histogram", ..., unit = unit, registry = registry
+      )
       buckets <- sort(buckets)
       private$buckets <- c(buckets, Inf)
       # Note: Buckets without a .0 seem to need them to satisfy the parser, but

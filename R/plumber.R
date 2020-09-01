@@ -85,10 +85,17 @@ register_plumber_metrics <- function(app, registry = global_registry()) {
       res$body <- "Unauthorized"
       return(res)
     }
-
-    res$setHeader("Content-Type", "text/plain;version=0.0.4")
     res$status <- 200L
-    res$body <- registry$render_all()
+
+    if (!is.null(req$HTTP_ACCEPT) &&
+        grepl("application/openmetrics-text", req$HTTP_ACCEPT, fixed = TRUE)) {
+      res$setHeader("Content-Type", .content_type)
+      res$body <- registry$render_all()
+    } else {
+      res$setHeader("Content-Type", .legacy_content_type)
+      res$body <- registry$render_all(format = "legacy")
+    }
+
     res
   })
 

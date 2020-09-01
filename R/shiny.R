@@ -77,10 +77,18 @@ register_shiny_metrics <- function(app, registry = openmetrics::global_registry(
           content = registry$render_all()
         )
       } else {
-        httpResponse(
-          content_type = "text/plain;version=0.0.4",
-          content = registry$render_all()
-        )
+        if (!is.null(req$HTTP_ACCEPT) &&
+            grepl("application/openmetrics-text", req$HTTP_ACCEPT, fixed = TRUE)) {
+          httpResponse(
+            content_type = .content_type,
+            content = registry$render_all()
+          )
+        } else {
+          httpResponse(
+            content_type = .legacy_content_type,
+            content = registry$render_all(format = "legacy")
+          )
+        }
       }
     }
   }

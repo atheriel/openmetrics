@@ -1,3 +1,9 @@
+# openmetrics 0.2.0.9000
+
+* Only generate the OpenMetrics format when the (preliminary) OpenMetrics
+  content-type is passed in the `Accept` header. Otherwise, fall back on the
+  Prometheus format and content-type (#3).
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

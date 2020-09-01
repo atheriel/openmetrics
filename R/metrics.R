@@ -440,3 +440,6 @@ merge_labels <- function(labels, defaults) {
 encode_labels <- function(labels) {
   paste0(names(labels), "=\"", labels, "\"", collapse = ",")
 }
+
+.content_type <- "application/openmetrics-text;version=0.0.1;charset=utf-8"
+.legacy_content_type <- "text/plain;version=0.0.4;charset=utf-8"

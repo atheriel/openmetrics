@@ -14,6 +14,8 @@
 * The `"`, `\n`, and `\` characters are now escaped in labels and help text, as
   in the OpenMetrics reference implementation (#1).
 
+* Counter metrics can now be incremented by zero.
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

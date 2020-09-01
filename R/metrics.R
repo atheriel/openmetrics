@@ -194,7 +194,7 @@ Counter <- R6::R6Class(
     },
 
     inc = function(by = 1, ...) {
-      stopifnot(by > 0)
+      stopifnot(by >= 0)
       if (is.null(private$labels)) {
         private$value <- private$value + by
       } else {

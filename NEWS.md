@@ -8,6 +8,9 @@
   issuing a warning. Clients that can tolerate these errors will likely
   `tryCatch()` them anyway, since `httr::RETRY()` can fail for other reasons.
 
+* Requests made to Shiny apps that return HTTP 401 will no longer include the
+  rendered metrics anyway.
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

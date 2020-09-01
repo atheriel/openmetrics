@@ -74,7 +74,7 @@ register_shiny_metrics <- function(app, registry = openmetrics::global_registry(
             "Content-Type" = "text/plain",
             "WWW-Authenticate" = "Basic realm=\"Runtime metrics\""
           ),
-          content = registry$render_all()
+          content = "Unauthorized"
         )
       } else {
         if (!is.null(req$HTTP_ACCEPT) &&

@@ -161,13 +161,13 @@ testthat::test_that("Metric units work as expected", {
   reg <- registry()
 
   testthat::expect_error(
-    Counter$new(
+    counter_metric(
       "count_bytes", "Custom counter.", unit = "seconds", registry = reg
     ),
     regexp = "Metric name does not match unit"
   )
 
-  counter <- Counter$new(
+  counter <- counter_metric(
     "count_seconds", "Custom counter.", unit = "seconds", registry = reg
   )
   testthat::expect_equal(

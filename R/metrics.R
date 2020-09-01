@@ -9,6 +9,8 @@
 #'
 #' @param name The name of the metric.
 #' @param help A brief, one-sentence explanation of the metric's meaning.
+#' @param unit An optional unit for the metric, e.g. \code{"seconds"}. Must
+#'   match the metric name.
 #' @param ... Currently ignored.
 #' @param registry Where to register the metric for later retrieval.
 #'
@@ -71,10 +73,11 @@
 #' @seealso The official documentation on [Metric Types](https://prometheus.io/docs/concepts/metric_types/).
 #' @name metrics
 #' @export
-counter_metric <- function(name, help, ..., registry = global_registry()) {
+counter_metric <- function(name, help, ..., unit = NULL,
+                           registry = global_registry()) {
   existing <- registry$metric(name, type = "counter")
   if (is.null(existing)) {
-    Counter$new(name = name, help = help, ..., registry = registry)
+    Counter$new(name = name, help = help, ..., unit = unit, registry = registry)
   } else {
     existing
   }
@@ -82,10 +85,11 @@ counter_metric <- function(name, help, ..., registry = global_registry()) {
 
 #' @rdname metrics
 #' @export
-gauge_metric <- function(name, help, ..., registry = global_registry()) {
+gauge_metric <- function(name, help, ..., unit = NULL,
+                         registry = global_registry()) {
   existing <- registry$metric(name, type = "gauge")
   if (is.null(existing)) {
-    Gauge$new(name = name, help = help, ..., registry = registry)
+    Gauge$new(name = name, help = help, ..., unit = unit, registry = registry)
   } else {
     existing
   }
@@ -97,11 +101,12 @@ gauge_metric <- function(name, help, ..., registry = global_registry()) {
 #' @rdname metrics
 #' @export
 histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
-                             ..., registry = global_registry()) {
+                             ..., unit = NULL, registry = global_registry()) {
   existing <- registry$metric(name, type = "histogram")
   if (is.null(existing)) {
     Histogram$new(
-      name = name, help = help, buckets = buckets, ..., registry = registry
+      name = name, help = help, buckets = buckets, ..., unit = unit,
+      registry = registry
     )
   } else {
     existing

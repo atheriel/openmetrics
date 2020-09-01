@@ -2,7 +2,9 @@ testthat::test_that("Pushgateway interaction works as expected", {
   reg <- registry()
   register_default_metrics(reg)
 
-  counter <- counter_metric("count", "Custom counter.", registry = reg)
+  counter <- counter_metric(
+    "count_bytes", "Custom counter.", unit = "bytes", registry = reg
+  )
   counter$inc(5)
 
   testthat::skip_on_cran()

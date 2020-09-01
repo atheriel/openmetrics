@@ -16,6 +16,10 @@
 
 * Counter metrics can now be incremented by zero.
 
+* Counter, Gauge, and Histogram metrics can now take an optional `unit`
+  parameter. The provided unit *must* match the one in the name of the metric
+  itself -- e.g. a `received_bytes` metric must have unit "bytes" (#2).
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

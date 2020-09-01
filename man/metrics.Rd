@@ -7,15 +7,16 @@
 \alias{histogram_metric}
 \title{Metrics}
 \usage{
-counter_metric(name, help, ..., registry = global_registry())
+counter_metric(name, help, ..., unit = NULL, registry = global_registry())
 
-gauge_metric(name, help, ..., registry = global_registry())
+gauge_metric(name, help, ..., unit = NULL, registry = global_registry())
 
 histogram_metric(
   name,
   help,
   buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
   ...,
+  unit = NULL,
   registry = global_registry()
 )
 }
@@ -25,6 +26,9 @@ histogram_metric(
 \item{help}{A brief, one-sentence explanation of the metric's meaning.}
 
 \item{...}{Currently ignored.}
+
+\item{unit}{An optional unit for the metric, e.g. \code{"seconds"}. Must
+match the metric name.}
 
 \item{registry}{Where to register the metric for later retrieval.}
 

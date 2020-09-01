@@ -117,7 +117,7 @@ Metric <- R6::R6Class(
         stop("Invalid metric name: '", name, "'.")
       }
       private$name <- name
-      private$help <- help
+      private$help <- escape_text(help)
       private$type <- type
       private$registry <- registry
       private$labels <- parse_labels(list(...))
@@ -438,7 +438,14 @@ merge_labels <- function(labels, defaults) {
 }
 
 encode_labels <- function(labels) {
-  paste0(names(labels), "=\"", labels, "\"", collapse = ",")
+  paste0(names(labels), "=\"", escape_text(labels), "\"", collapse = ",")
+}
+
+escape_text <- function(text) {
+  text <- gsub("\\", "\\\\", text, fixed = TRUE)
+  text <- gsub("\n", "\\n", text, fixed = TRUE)
+  text <- gsub("\"", "\\\"", text, fixed = TRUE)
+  text
 }
 
 .content_type <- "application/openmetrics-text;version=0.0.1;charset=utf-8"

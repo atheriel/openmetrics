@@ -11,6 +11,9 @@
 * Requests made to Shiny apps that return HTTP 401 will no longer include the
   rendered metrics anyway.
 
+* The `"`, `\n`, and `\` characters are now escaped in labels and help text, as
+  in the OpenMetrics reference implementation (#1).
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

@@ -43,3 +43,11 @@ testthat::test_that("Labels work as expected", {
   # Encoding.
   testthat::expect_equal(encode_labels(valid), 'colour="red",month="aug"')
 })
+
+testthat::test_that("Escaping works as expected", {
+  misbehaved <- list(unescaped = "cats\n a\\nd \"dogs\"\n", fine = "text")
+  testthat::expect_equal(
+    encode_labels(misbehaved),
+    'unescaped="cats\\n a\\\\nd \\\"dogs\\\"\\n",fine="text"'
+  )
+})

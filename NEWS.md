@@ -4,6 +4,10 @@
   content-type is passed in the `Accept` header. Otherwise, fall back on the
   Prometheus format and content-type (#3).
 
+* Pushgateway functions will now `stop()` for HTTP errors instead of merely
+  issuing a warning. Clients that can tolerate these errors will likely
+  `tryCatch()` them anyway, since `httr::RETRY()` can fail for other reasons.
+
 # openmetrics 0.2.0
 
 * Add `push_to_gateway()` and `delete_from_gateway()` for manually pushing

@@ -1,3 +1,11 @@
+# Since timestamps are not reproducible, set them to a sigil value.
+reset_created <- function(rendered) {
+  out <- strsplit(rendered, "\n", fixed = TRUE)[[1]]
+  out <- gsub("_created(.*)\\s([0-9\\.]+)$", "_created\\1 1", out)
+  out <- paste(out, collapse = "\n")
+  if (endsWith(out, "EOF")) out else sprintf("%s\n", out)
+}
+
 testthat::test_that("Metrics work as expected", {
   reg <- registry()
   testthat::expect_equal(length(collect_metrics(reg)), 0)
@@ -40,10 +48,11 @@ testthat::test_that("Metrics work as expected", {
   out <- collect_metrics(reg)
   testthat::expect_equal(length(out), 3)
   testthat::expect_equal(
-    render_metrics(reg),
+    reset_created(render_metrics(reg)),
     '# HELP count Custom counter.
 # TYPE count counter
 count_total 1
+count_created 1
 # HELP value Custom gauge.
 # TYPE value gauge
 value 1
@@ -64,6 +73,7 @@ dist_bucket{le="2048.0"} 3
 dist_bucket{le="+Inf"} 3
 dist_sum 661.7
 dist_count 3
+dist_created 1
 # EOF'
   )
 
@@ -112,11 +122,13 @@ testthat::test_that("Metrics with labels work as expected", {
   )
 
   testthat::expect_equal(
-    render_metrics(reg),
+    reset_created(render_metrics(reg)),
     '# HELP count Custom counter.
 # TYPE count counter
 count_total{method="GET",endpoint="/"} 6
+count_created{method="GET",endpoint="/"} 1
 count_total{method="POST",endpoint="/"} 1
+count_created{method="POST",endpoint="/"} 1
 # HELP value Custom gauge.
 # TYPE value gauge
 value{method="GET",endpoint="/"} 10
@@ -137,6 +149,7 @@ dist_bucket{method="GET",endpoint="/",le="10.0"} 1
 dist_bucket{method="GET",endpoint="/",le="+Inf"} 2
 dist_sum{method="GET",endpoint="/"} 61.7
 dist_count{method="GET",endpoint="/"} 2
+dist_created{method="GET",endpoint="/"} 1
 dist_bucket{method="POST",endpoint="/",le="0.005"} 0
 dist_bucket{method="POST",endpoint="/",le="0.01"} 0
 dist_bucket{method="POST",endpoint="/",le="0.025"} 0
@@ -151,6 +164,7 @@ dist_bucket{method="POST",endpoint="/",le="10.0"} 0
 dist_bucket{method="POST",endpoint="/",le="+Inf"} 1
 dist_sum{method="POST",endpoint="/"} 100
 dist_count{method="POST",endpoint="/"} 1
+dist_created{method="POST",endpoint="/"} 1
 # EOF'
   )
 })
@@ -181,13 +195,17 @@ testthat::test_that("Counter metrics render correctly in legacy format", {
   counter$inc(entity = "framework")
 
   testthat::expect_equal(
-    reg$render_all(format = "legacy"),
+    reset_created(reg$render_all(format = "legacy")),
     '# HELP count_total Custom counter.
 # TYPE count_total counter
 count_total 1
+# TYPE count_total_created gauge
+count_total_created 1
 # HELP count2_total Custom counter.
 # TYPE count2_total counter
 count2_total{entity="framework"} 1
+# TYPE count2_total_created gauge
+count2_total_created{entity="framework"} 1
 '
   )
 })
@@ -206,11 +224,12 @@ testthat::test_that("Metric units work as expected", {
     "count_seconds", "Custom counter.", unit = "seconds", registry = reg
   )
   testthat::expect_equal(
-    render_metrics(reg),
+    reset_created(render_metrics(reg)),
     '# HELP count_seconds Custom counter.
 # TYPE count_seconds counter
 # UNIT count_seconds seconds
 count_seconds_total 0
+count_seconds_created 1
 # EOF'
   )
 })

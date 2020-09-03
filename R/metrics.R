@@ -199,8 +199,10 @@ Counter <- R6::R6Class(
       if (is.null(private$labels)) {
         # Fast version, just a value.
         private$value <- 0
+        private$created <- unclass(Sys.time())
       } else {
         private$value <- new.env(parent = emptyenv())
+        private$created <- new.env(parent = emptyenv())
       }
     },
 
@@ -209,18 +211,46 @@ Counter <- R6::R6Class(
       # _total but help/type text do not. However, some existing tools will
       # barf on this input, notably the Prometheus Pushgateway, so it must be
       # possible to circumvent.
+      #
+      # In addition, when in legacy mode, make _created a separate metric with
+      # no HELP or TYPE info. This is what the Python reference client does.
       if (format == "openmetrics") {
         header <- private$header()
+        if (is.null(private$labels)) {
+          sprintf(
+            "%s\n%s_total %s\n%s_created %s\n", header, private$name,
+            private$value, private$name, private$created
+          )
+        } else {
+          entries <- vapply(ls(private$value), function(key) {
+            sprintf(
+              "%s_total{%s} %s\n%s_created{%s} %s", private$name, key,
+              private$value[[key]], private$name, key, private$created[[key]]
+            )
+          }, character(1))
+          sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
+        }
       } else {
-        header <- private$header(name = sprintf("%s_total", private$name))
-      }
-      if (is.null(private$labels)) {
-        sprintf("%s\n%s_total %s\n", header, private$name, private$value)
-      } else {
-        entries <- vapply(ls(private$value), function(key) {
-          sprintf("%s_total{%s} %s", private$name, key, private$value[[key]])
-        }, character(1))
-        sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
+        name <- sprintf("%s_total", private$name)
+        header <- private$header(name = name)
+        if (is.null(private$labels)) {
+          sprintf(
+            "%s\n%s %s\n# TYPE %s_created gauge\n%s_created %s\n", header, name,
+            private$value, name, name, private$created
+          )
+        } else {
+          entries <- vapply(ls(private$value), function(key) {
+            sprintf("%s{%s} %s", name, key, private$value[[key]])
+          }, character(1))
+          created <- vapply(ls(private$created), function(key) {
+            sprintf("%s_created{%s} %s", name, key, private$created[[key]])
+          }, character(1))
+          sprintf(
+            "%s\n%s\n# TYPE %s_created gauge\n%s\n", header,
+            paste(entries, collapse = "\n"), name,
+            paste(created, collapse = "\n")
+          )
+        }
       }
     },
 
@@ -232,6 +262,7 @@ Counter <- R6::R6Class(
         key <- encode_labels(validate_labels(list(...), private$labels))
         value <- private$value[[key]]
         if (is.null(value)) {
+          private$created[[key]] <- unclass(Sys.time())
           private$value[[key]] <- by
         } else {
           private$value[[key]] <- value + by
@@ -243,12 +274,13 @@ Counter <- R6::R6Class(
       if (is.null(private$labels)) {
         private$value <- 0
       } else {
+        private$created <- new.env(parent = emptyenv())
         private$value <- new.env(parent = emptyenv())
       }
     }
   ),
   private = list(
-    value = NULL
+    value = NULL, created = NULL
   )
 )
 
@@ -358,6 +390,11 @@ Histogram <- R6::R6Class(
       buckets_str[!have_digits] <- sprintf("%.1f", buckets[!have_digits])
       private$le <- c(buckets_str, "+Inf")
       self$reset()
+      if (is.null(private$labels)) {
+        private$created <- unclass(Sys.time())
+      } else {
+        private$created <- new.env(parent = emptyenv())
+      }
     },
 
     render = function(format = "openmetrics") {
@@ -367,15 +404,32 @@ Histogram <- R6::R6Class(
         )
         sums <- sprintf("%s_sum %s", private$name, private$sum)
         count <- sprintf("%s_count %s", private$name, private$count)
-        sprintf(
-          "%s\n%s\n", private$header(),
-          paste(c(buckets, sums, count), collapse = "\n")
-        )
+        created <- sprintf("%s_created %s", private$name, private$created)
+        if (format == "openmetrics") {
+          sprintf(
+            "%s\n%s\n", private$header(),
+            paste(c(buckets, sums, count, created), collapse = "\n")
+          )
+        } else {
+          created_type <- sprintf("#TYPE %s_created gauge", private$name)
+          sprintf(
+            "%s\n%s\n", private$header(), paste(
+              c(buckets, sums, count, created_type, created), collapse = "\n"
+            )
+          )
+        }
       } else {
         # Matching labels need to be printed together to satisfy the OpenMetrics
         # parser.
         keys <- ls(private$dist)
         blocks <- character(length(keys))
+        # For legacy formatting, keep _created under its own metric.
+        if (format == "openmetrics") {
+          cblocks <- character()
+        } else {
+          cblocks <- character(length(keys) + 1)
+          cblocks[1] <- sprintf("# TYPE %s_created gauge", private$name)
+        }
         for (i in 1:length(keys)) {
           key <- keys[i]
           buckets <- paste0(
@@ -386,10 +440,22 @@ Histogram <- R6::R6Class(
           count <- sprintf(
             "%s_count{%s} %s", private$name, key, private$count[[key]]
           )
-          blocks[i] <- paste(c(buckets, sums, count), collapse = "\n")
+
+          if (format == "openmetrics") {
+            created <- sprintf(
+              "%s_created{%s} %s", private$name, key, private$created[[key]]
+            )
+            blocks[i] <- paste(c(buckets, sums, count, created), collapse = "\n")
+          } else {
+            blocks[i] <- paste(c(buckets, sums, count), collapse = "\n")
+            cblocks[i + 1] <- sprintf(
+              "%s_created{%s} %s", private$name, key, private$created[[key]]
+            )
+          }
         }
         sprintf(
-          "%s\n%s\n", private$header(), paste(blocks, collapse = "\n")
+          "%s\n%s\n", private$header(),
+          paste(c(blocks, cblocks), collapse = "\n")
         )
       }
     },
@@ -408,6 +474,7 @@ Histogram <- R6::R6Class(
         current <- private$dist[[key]]
         # We know that if one entry is missing they all are.
         if (is.null(current)) {
+          private$created[[key]] <- unclass(Sys.time())
           private$dist[[key]] <- dist
           private$count[[key]] <- 1
           private$sum[[key]] <- value
@@ -440,7 +507,8 @@ Histogram <- R6::R6Class(
     }
   ),
   private = list(
-    buckets = numeric(), le = character(), dist = NULL, sum = NULL, count = NULL
+    buckets = numeric(), le = character(), dist = NULL, sum = NULL,
+    count = NULL, created = NULL
   )
 )
 

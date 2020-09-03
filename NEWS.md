@@ -1,5 +1,18 @@
 # openmetrics 0.2.0.9000
 
+## Breaking Changes
+
+* Label names should now be passed as the `labels` parameter when creating a
+  metric, instead of being inferred from the remaining named arguments. For
+  consistency with other clients, there is no longer a notion of a "default"
+  label value. This also makes it possible to have labels like `name`, `help`,
+  `type`, and so on that conflict with existing parameter names.
+
+* Relatedly, all labels must now be specified when calling methods on a metric
+  (such as `inc()` or `set()`), since there is no default to fall back on.
+
+## Other Improvements
+
 * Only generate the OpenMetrics format when the (preliminary) OpenMetrics
   content-type is passed in the `Accept` header. Otherwise, fall back on the
   Prometheus format and content-type (#3).

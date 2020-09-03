@@ -77,23 +77,33 @@ testthat::test_that("Metrics with labels work as expected", {
   counter <- counter_metric(
     "count", "Custom counter.", method = "GET", endpoint = "/", registry = reg
   )
-  testthat::expect_equal(counter$inc(5), 5)
-  testthat::expect_equal(counter$inc(ignored = "value"), 6)
-  testthat::expect_equal(counter$inc(method = "POST"), 1)
+  testthat::expect_equal(counter$inc(5, method = "GET", endpoint = "/"), 5)
+  testthat::expect_equal(
+    counter$inc(method = "GET", endpoint = "/", ignored = "value"), 6
+  )
+  testthat::expect_equal(counter$inc(method = "POST", endpoint = "/"), 1)
 
   gauge <- gauge_metric(
     "value", "Custom gauge.", method = "GET", endpoint = "/", registry = reg
   )
-  testthat::expect_equal(gauge$set(5), 5)
-  testthat::expect_equal(gauge$set(10, ignored = "value"), 10)
-  testthat::expect_equal(gauge$inc(method = "POST"), 1)
+  testthat::expect_equal(gauge$set(5, method = "GET", endpoint = "/"), 5)
+  testthat::expect_equal(
+    gauge$set(10, method = "GET", endpoint = "/", ignored = "value"), 10
+  )
+  testthat::expect_equal(gauge$inc(method = "POST", endpoint = "/"), 1)
 
   hist <- histogram_metric(
     "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
   )
-  testthat::expect_equal(hist$observe(51.7), 51.7)
-  testthat::expect_equal(hist$observe(10, ignored = "value"), 61.7)
-  testthat::expect_equal(hist$observe(100, method = "POST"), 100)
+  testthat::expect_equal(
+    hist$observe(51.7, method = "GET", endpoint = "/"), 51.7
+  )
+  testthat::expect_equal(
+    hist$observe(10, method = "GET", endpoint = "/",ignored = "value"), 61.7
+  )
+  testthat::expect_equal(
+    hist$observe(100, method = "POST", endpoint = "/"), 100
+  )
 
   # Invalid metric labels.
   testthat::expect_error(

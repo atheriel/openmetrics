@@ -7,14 +7,29 @@
 \alias{histogram_metric}
 \title{Metrics}
 \usage{
-counter_metric(name, help, ..., unit = NULL, registry = global_registry())
+counter_metric(
+  name,
+  help,
+  labels = character(),
+  ...,
+  unit = NULL,
+  registry = global_registry()
+)
 
-gauge_metric(name, help, ..., unit = NULL, registry = global_registry())
+gauge_metric(
+  name,
+  help,
+  labels = character(),
+  ...,
+  unit = NULL,
+  registry = global_registry()
+)
 
 histogram_metric(
   name,
   help,
   buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
+  labels = character(),
   ...,
   unit = NULL,
   registry = global_registry()
@@ -25,7 +40,9 @@ histogram_metric(
 
 \item{help}{A brief, one-sentence explanation of the metric's meaning.}
 
-\item{...}{Currently ignored.}
+\item{labels}{A vector of label names for the metric.}
+
+\item{...}{For backward compatibility, otherwise ignored.}
 
 \item{unit}{An optional unit for the metric, e.g. \code{"seconds"}. Must
 match the metric name.}
@@ -72,9 +89,9 @@ Available for histograms.
 }
 }
 \examples{
-meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
+meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 meows$inc(cat = "Shamus") # Count one meow from Shamus.
-meows$inc(3) # Count three meows of unknown origin.
+meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
 meows$render()
 
 thermostat <- gauge_metric("thermostat", "Thermostat display.")
@@ -84,7 +101,7 @@ thermostat$render()
 
 temperature <- histogram_metric(
   "temperature", "Ambient room temperature measurements.",
-  buckets = c(10, 15, 20, 22, 25), room = "kitchen"
+  buckets = c(10, 15, 20, 22, 25), labels = "room"
 )
 set.seed(9090)
 # Simulate taking ambient temperature samples.

@@ -1,6 +1,6 @@
 testthat::test_that("Labels work as expected", {
   valid <- list(colour = "red", month = "aug")
-  default <- list(colour = "blue", month = "may")
+  available <- c("colour", "month")
 
   # Ingesting valid labels.
   testthat::expect_equal(parse_labels(list()), NULL)
@@ -24,20 +24,15 @@ testthat::test_that("Labels work as expected", {
     regexp = "All labels must be strings"
   )
 
-  # Merging labels.
-  testthat::expect_equal(merge_labels(valid, default), valid)
-  testthat::expect_equal(merge_labels(NULL, default), default)
-  testthat::expect_equal(
-    merge_labels(list(colour = "yellow"), default),
-    list(colour = "yellow", month = "may")
+  # Validating labels.
+  testthat::expect_equal(validate_labels(valid, available), valid)
+  testthat::expect_error(
+    validate_labels(NULL, available),
+    regexp = "One or more missing metric labels"
   )
-  testthat::expect_equal(
-    merge_labels(list(new = "present"), default),
-    default
-  )
-  testthat::expect_equal(
-    merge_labels(list(colour = "yellow", new = "present"), default),
-    list(colour = "yellow", month = "may")
+  testthat::expect_error(
+    validate_labels(list(colour = "yellow"), available),
+    regexp = "One or more missing metric labels"
   )
 
   # Encoding.

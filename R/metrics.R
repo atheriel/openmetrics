@@ -9,9 +9,10 @@
 #'
 #' @param name The name of the metric.
 #' @param help A brief, one-sentence explanation of the metric's meaning.
+#' @param labels A vector of label names for the metric.
 #' @param unit An optional unit for the metric, e.g. \code{"seconds"}. Must
 #'   match the metric name.
-#' @param ... Currently ignored.
+#' @param ... For backward compatibility, otherwise ignored.
 #' @param registry Where to register the metric for later retrieval.
 #'
 #' @return An object with methods to manipulate the metric. See details.
@@ -49,9 +50,9 @@
 #'   Available for histograms.
 #'
 #' @examples
-#' meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
+#' meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 #' meows$inc(cat = "Shamus") # Count one meow from Shamus.
-#' meows$inc(3) # Count three meows of unknown origin.
+#' meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
 #' meows$render()
 #'
 #' thermostat <- gauge_metric("thermostat", "Thermostat display.")
@@ -61,7 +62,7 @@
 #'
 #' temperature <- histogram_metric(
 #'   "temperature", "Ambient room temperature measurements.",
-#'   buckets = c(10, 15, 20, 22, 25), room = "kitchen"
+#'   buckets = c(10, 15, 20, 22, 25), labels = "room"
 #' )
 #' set.seed(9090)
 #' # Simulate taking ambient temperature samples.
@@ -73,11 +74,16 @@
 #' @seealso The official documentation on [Metric Types](https://prometheus.io/docs/concepts/metric_types/).
 #' @name metrics
 #' @export
-counter_metric <- function(name, help, ..., unit = NULL,
+counter_metric <- function(name, help, labels = character(), ..., unit = NULL,
                            registry = global_registry()) {
   existing <- registry$metric(name, type = "counter")
   if (is.null(existing)) {
-    Counter$new(name = name, help = help, ..., unit = unit, registry = registry)
+    # Backwards compatibility with passing labels as arguments.
+    labels <- union(labels, names(list(...)))
+    Counter$new(
+      name = name, help = help, labels = labels, unit = unit,
+      registry = registry
+    )
   } else {
     existing
   }
@@ -85,11 +91,16 @@ counter_metric <- function(name, help, ..., unit = NULL,
 
 #' @rdname metrics
 #' @export
-gauge_metric <- function(name, help, ..., unit = NULL,
+gauge_metric <- function(name, help, labels = character(), ..., unit = NULL,
                          registry = global_registry()) {
   existing <- registry$metric(name, type = "gauge")
   if (is.null(existing)) {
-    Gauge$new(name = name, help = help, ..., unit = unit, registry = registry)
+    # Backwards compatibility with passing labels as arguments.
+    labels <- union(labels, names(list(...)))
+    Gauge$new(
+      name = name, help = help, labels = labels, unit = unit,
+      registry = registry
+    )
   } else {
     existing
   }
@@ -101,11 +112,14 @@ gauge_metric <- function(name, help, ..., unit = NULL,
 #' @rdname metrics
 #' @export
 histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
-                             ..., unit = NULL, registry = global_registry()) {
+                             labels = character(), ..., unit = NULL,
+                             registry = global_registry()) {
   existing <- registry$metric(name, type = "histogram")
   if (is.null(existing)) {
+    # Backwards compatibility with passing labels as arguments.
+    labels <- union(labels, names(list(...)))
     Histogram$new(
-      name = name, help = help, buckets = buckets, ..., unit = unit,
+      name = name, help = help, buckets = buckets, labels = labels, unit = unit,
       registry = registry
     )
   } else {
@@ -116,8 +130,8 @@ histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0
 Metric <- R6::R6Class(
   "Metric",
   public = list(
-    initialize = function(name, help, type = "gauge", ..., unit = NULL,
-                          registry = global_registry()) {
+    initialize = function(name, help, type = "gauge", labels = character(),
+                          unit = NULL, registry = global_registry()) {
       if (!grepl("^[a-zA-Z_:][a-zA-Z0-9_:]*$", name)) {
         stop("Invalid metric name: '", name, "'.")
       }
@@ -126,14 +140,17 @@ Metric <- R6::R6Class(
       private$type <- type
       private$unit <- unit
       private$registry <- registry
-      private$labels <- parse_labels(list(...))
+      if (length(labels) > 0) {
+        # This is so we don't have to refactor the NULL checks.
+        private$labels <- labels
+      }
 
       # We only need to check spec validity for label names once.
-      valid <- grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", names(private$labels))
+      valid <- grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", private$labels)
       if (!all(valid)) {
         stop(
           "One or more invalid metric labels: '",
-          paste(names(private$labels)[!valid], collapse = "', '"), "'."
+          paste(private$labels[!valid], collapse = "', '"), "'."
         )
       }
 
@@ -171,11 +188,13 @@ Metric <- R6::R6Class(
 Counter <- R6::R6Class(
   "Counter", inherit = Metric,
   public = list(
-    initialize = function(name, help, ..., unit = NULL, registry = global_registry()) {
+    initialize = function(name, help, labels = character(), unit = NULL,
+                          registry = global_registry()) {
       # Compatibility with OpenMetrics.
       name <- gsub("_total$", "", name)
       super$initialize(
-        name, help, type = "counter", ..., unit = unit, registry = registry
+        name, help, type = "counter", labels = labels, unit = unit,
+        registry = registry
       )
       if (is.null(private$labels)) {
         # Fast version, just a value.
@@ -210,7 +229,7 @@ Counter <- R6::R6Class(
       if (is.null(private$labels)) {
         private$value <- private$value + by
       } else {
-        key <- encode_labels(merge_labels(list(...), private$labels))
+        key <- encode_labels(validate_labels(list(...), private$labels))
         value <- private$value[[key]]
         if (is.null(value)) {
           private$value[[key]] <- by
@@ -236,9 +255,11 @@ Counter <- R6::R6Class(
 Gauge <- R6::R6Class(
   "Gauge", inherit = Metric,
   public = list(
-    initialize = function(name, help, ..., unit = NULL, registry = global_registry()) {
+    initialize = function(name, help, labels = character(), unit = NULL,
+                          registry = global_registry()) {
       super$initialize(
-        name, help, type = "gauge", ..., unit = unit, registry = registry
+        name, help, type = "gauge", labels = labels, unit = unit,
+        registry = registry
       )
       if (is.null(private$labels)) {
         # Fast version, just a value.
@@ -267,7 +288,7 @@ Gauge <- R6::R6Class(
       if (is.null(private$labels)) {
         private$value <- private$value + by
       } else {
-        key <- encode_labels(merge_labels(list(...), private$labels))
+        key <- encode_labels(validate_labels(list(...), private$labels))
         value <- private$value[[key]]
         if (is.null(value)) {
           private$value[[key]] <- by
@@ -281,7 +302,7 @@ Gauge <- R6::R6Class(
       if (is.null(private$labels)) {
         private$value <- private$value - by
       } else {
-        key <- encode_labels(merge_labels(list(...), private$labels))
+        key <- encode_labels(validate_labels(list(...), private$labels))
         value <- private$value[[key]]
         if (is.null(value)) {
           private$value[[key]] <- -by
@@ -296,7 +317,7 @@ Gauge <- R6::R6Class(
       if (is.null(private$labels)) {
         private$value <- value
       } else {
-        key <- encode_labels(merge_labels(list(...), private$labels))
+        key <- encode_labels(validate_labels(list(...), private$labels))
         private$value[[key]] <- value
       }
     },
@@ -322,9 +343,11 @@ Histogram <- R6::R6Class(
   "Histogram", inherit = Metric,
   public = list(
     initialize = function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
-                          ..., unit = NULL, registry = global_registry()) {
+                          labels = character(), unit = NULL,
+                          registry = global_registry()) {
       super$initialize(
-        name, help, type = "histogram", ..., unit = unit, registry = registry
+        name, help, type = "histogram", labels = labels, unit = unit,
+        registry = registry
       )
       buckets <- sort(buckets)
       private$buckets <- c(buckets, Inf)
@@ -381,7 +404,7 @@ Histogram <- R6::R6Class(
         private$count <- private$count + 1
         private$sum <- private$sum + value
       } else {
-        key <- encode_labels(merge_labels(list(...), private$labels))
+        key <- encode_labels(validate_labels(list(...), private$labels))
         current <- private$dist[[key]]
         # We know that if one entry is missing they all are.
         if (is.null(current)) {
@@ -437,13 +460,15 @@ parse_labels <- function(labels) {
   labels
 }
 
-merge_labels <- function(labels, defaults) {
-  if (length(labels) == 0) {
-    defaults
-  } else {
-    out <- utils::modifyList(defaults, parse_labels(labels))
-    out[names(out) %in% names(defaults)]
+validate_labels <- function(labels, available) {
+  labels <- parse_labels(labels)
+  present <- available %in% names(labels)
+  if (!all(present)) {
+    missing <- paste0(available[!present], collapse = "', '")
+    stop("One or more missing metric labels: '", missing,  "'.")
   }
+  # TODO: Is it wrong to silently drop additional labels?
+  labels[names(labels) %in% available]
 }
 
 encode_labels <- function(labels) {

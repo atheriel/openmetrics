@@ -182,8 +182,6 @@ Counter <- R6::R6Class(
         private$value <- 0
       } else {
         private$value <- new.env(parent = emptyenv())
-        # Initialize the counter for the default labels.
-        private$value[[encode_labels(private$labels)]] <- 0
       }
     },
 
@@ -227,7 +225,6 @@ Counter <- R6::R6Class(
         private$value <- 0
       } else {
         private$value <- new.env(parent = emptyenv())
-        private$value[[encode_labels(private$labels)]] <- 0
       }
     }
   ),
@@ -248,7 +245,6 @@ Gauge <- R6::R6Class(
         private$value <- 0
       } else {
         private$value <- new.env(parent = emptyenv())
-        private$value[[encode_labels(private$labels)]] <- 0
       }
     },
 
@@ -314,7 +310,6 @@ Gauge <- R6::R6Class(
         private$value <- 0
       } else {
         private$value <- new.env(parent = emptyenv())
-        private$value[[encode_labels(private$labels)]] <- 0
       }
     }
   ),
@@ -418,10 +413,6 @@ Histogram <- R6::R6Class(
         private$dist <- new.env(parent = emptyenv())
         private$sum <- new.env(parent = emptyenv())
         private$count <- new.env(parent = emptyenv())
-        key <- encode_labels(private$labels)
-        private$sum[[key]] <- 0
-        private$count[[key]] <- 0
-        private$dist[[key]] <- rep(0, times = length(private$buckets))
       }
     }
   ),

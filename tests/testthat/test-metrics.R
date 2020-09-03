@@ -177,7 +177,6 @@ testthat::test_that("Counter metrics render correctly in legacy format", {
 count_total 1
 # HELP count2_total Custom counter.
 # TYPE count2_total counter
-count2_total{entity=""} 0
 count2_total{entity="framework"} 1
 '
   )

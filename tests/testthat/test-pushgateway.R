@@ -6,6 +6,12 @@ testthat::test_that("Pushgateway interaction works as expected", {
     "count_bytes", "Custom counter.", unit = "bytes", registry = reg
   )
   counter$inc(5)
+  hist <- histogram_metric(
+    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+  )
+  hist$observe(51.7, method = "GET", endpoint = "/")
+  hist$observe(10, method = "GET", endpoint = "/",ignored = "value")
+  hist$observe(100, method = "POST", endpoint = "/")
 
   testthat::skip_on_cran()
   testthat::skip_on_ci()

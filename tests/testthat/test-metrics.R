@@ -210,6 +210,55 @@ count2_total_created{entity="framework"} 1
   )
 })
 
+testthat::test_that("Histogram metrics render correctly in legacy format", {
+  reg <- registry()
+
+  hist <- histogram_metric(
+    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+  )
+  hist$observe(51.7, method = "GET", endpoint = "/")
+  hist$observe(10, method = "GET", endpoint = "/",ignored = "value")
+  hist$observe(100, method = "POST", endpoint = "/")
+
+  testthat::expect_equal(
+    reset_created(reg$render_all(format = "legacy")),
+    '# HELP dist Custom histogram.
+# TYPE dist histogram
+dist_bucket{method="GET",endpoint="/",le="0.005"} 0
+dist_bucket{method="GET",endpoint="/",le="0.01"} 0
+dist_bucket{method="GET",endpoint="/",le="0.025"} 0
+dist_bucket{method="GET",endpoint="/",le="0.05"} 0
+dist_bucket{method="GET",endpoint="/",le="0.1"} 0
+dist_bucket{method="GET",endpoint="/",le="0.25"} 0
+dist_bucket{method="GET",endpoint="/",le="0.5"} 0
+dist_bucket{method="GET",endpoint="/",le="1.0"} 0
+dist_bucket{method="GET",endpoint="/",le="2.5"} 0
+dist_bucket{method="GET",endpoint="/",le="5.0"} 0
+dist_bucket{method="GET",endpoint="/",le="10.0"} 1
+dist_bucket{method="GET",endpoint="/",le="+Inf"} 2
+dist_sum{method="GET",endpoint="/"} 61.7
+dist_count{method="GET",endpoint="/"} 2
+dist_bucket{method="POST",endpoint="/",le="0.005"} 0
+dist_bucket{method="POST",endpoint="/",le="0.01"} 0
+dist_bucket{method="POST",endpoint="/",le="0.025"} 0
+dist_bucket{method="POST",endpoint="/",le="0.05"} 0
+dist_bucket{method="POST",endpoint="/",le="0.1"} 0
+dist_bucket{method="POST",endpoint="/",le="0.25"} 0
+dist_bucket{method="POST",endpoint="/",le="0.5"} 0
+dist_bucket{method="POST",endpoint="/",le="1.0"} 0
+dist_bucket{method="POST",endpoint="/",le="2.5"} 0
+dist_bucket{method="POST",endpoint="/",le="5.0"} 0
+dist_bucket{method="POST",endpoint="/",le="10.0"} 0
+dist_bucket{method="POST",endpoint="/",le="+Inf"} 1
+dist_sum{method="POST",endpoint="/"} 100
+dist_count{method="POST",endpoint="/"} 1
+# TYPE dist_created gauge
+dist_created{method="GET",endpoint="/"} 1
+dist_created{method="POST",endpoint="/"} 1
+'
+  )
+})
+
 testthat::test_that("Metric units work as expected", {
   reg <- registry()
 

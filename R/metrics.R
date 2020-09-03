@@ -153,16 +153,15 @@ Metric <- R6::R6Class(
     name = NULL, help = NULL, type = NULL, labels = NULL, registry = NULL,
     unit = NULL,
 
-    header = function(name = private$name) {
+    header = function(name = private$name, type = private$type) {
       if (!is.null(private$unit)) {
         sprintf(
           "# HELP %s %s\n# TYPE %s %s\n# UNIT %s %s", name, private$help, name,
-          private$type, name, private$unit
+          type, name, private$unit
         )
       } else {
         sprintf(
-          "# HELP %s %s\n# TYPE %s %s", name, private$help, name,
-          private$type
+          "# HELP %s %s\n# TYPE %s %s", name, private$help, name, type
         )
       }
     }
@@ -194,23 +193,17 @@ Counter <- R6::R6Class(
       # barf on this input, notably the Prometheus Pushgateway, so it must be
       # possible to circumvent.
       if (format == "openmetrics") {
-        name <- private$name
-        fmt <- "%s\n%s_total %s\n"
-        fmt_labels <- "%s_total{%s} %s"
+        header <- private$header()
       } else {
-        name <- sprintf("%s_total", private$name)
-        fmt <- "%s\n%s %s\n"
-        fmt_labels <- "%s{%s} %s"
+        header <- private$header(name = sprintf("%s_total", private$name))
       }
       if (is.null(private$labels)) {
-        sprintf(fmt, private$header(name), name, private$value)
+        sprintf("%s\n%s_total %s\n", header, private$name, private$value)
       } else {
         entries <- vapply(ls(private$value), function(key) {
-          sprintf(fmt_labels, name, key, private$value[[key]])
+          sprintf("%s_total{%s} %s", private$name, key, private$value[[key]])
         }, character(1))
-        sprintf(
-          "%s\n%s\n", private$header(name), paste(entries, collapse = "\n")
-        )
+        sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
       }
     },
 

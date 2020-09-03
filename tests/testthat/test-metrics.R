@@ -157,6 +157,32 @@ testthat::test_that("Default process metrics work as expected", {
   testthat::expect_equal(length(collect_metrics(reg)), 0)
 })
 
+testthat::test_that("Counter metrics render correctly in legacy format", {
+  reg <- registry()
+
+  counter <- counter_metric(
+    "count", "Custom counter.", registry = reg
+  )
+  counter$inc()
+
+  counter <- counter_metric(
+    "count2", "Custom counter.", entity = "", registry = reg
+  )
+  counter$inc(entity = "framework")
+
+  testthat::expect_equal(
+    reg$render_all(format = "legacy"),
+    '# HELP count_total Custom counter.
+# TYPE count_total counter
+count_total 1
+# HELP count2_total Custom counter.
+# TYPE count2_total counter
+count2_total{entity=""} 0
+count2_total{entity="framework"} 1
+'
+  )
+})
+
 testthat::test_that("Metric units work as expected", {
   reg <- registry()
 

@@ -297,3 +297,94 @@ count_seconds_created 1
 # EOF'
   )
 })
+
+testthat::test_that("Info metrics work as expected", {
+  reg <- registry()
+
+  # Basic usage. The "info" suffix is silently dropped.
+  info <- Info$new("build_info", "Build information.", registry = reg)
+  info$set(revision = "0a45de7a", version = "1.0.0")
+
+  # With labels.
+  info <- Info$new(
+    "ports", "Ports monitored.", labels = "track", registry = reg
+  )
+  info$set(port = "12345", track = "dev")
+  info$set(port = "12346", track = "prod")
+
+  testthat::expect_equal(
+    render_metrics(reg),
+    '# HELP build Build information.
+# TYPE build info
+build_info{revision="0a45de7a",version="1.0.0"} 1
+# HELP ports Ports monitored.
+# TYPE ports info
+ports_info{port="12345",track="dev"} 1
+ports_info{port="12346",track="prod"} 1
+# EOF'
+  )
+
+  testthat::expect_equal(
+    reg$render_all(format = "legacy"),
+    '# HELP build_info Build information.
+# TYPE build_info gauge
+build_info{revision="0a45de7a",version="1.0.0"} 1
+# HELP ports_info Ports monitored.
+# TYPE ports_info gauge
+ports_info{port="12345",track="dev"} 1
+ports_info{port="12346",track="prod"} 1
+'
+  )
+})
+
+testthat::test_that("StateSet metrics work as expected", {
+  reg <- registry()
+
+  testthat::expect_error(
+    StateSet$new(
+      "feature", "Enabled features.", states = c("jit", "tce"),
+      labels = "feature", registry = reg
+    ),
+    regexp = "labels must not include an entry matching its name"
+  )
+
+  # Basic usage.
+  ss <- StateSet$new(
+    "feature", "Enabled features.", states = c("jit", "tce"), registry = reg
+  )
+  ss$set("tce", 1)
+
+  # Enum-style, with labels.
+  ss <- StateSet$new(
+    "status", "Enabled status.", states = "enabled", labels = "entity",
+    registry = reg
+  )
+  ss$set("enabled", FALSE, entity = "follower")
+  ss$set("enabled", TRUE, entity = "leader")
+
+  testthat::expect_equal(
+    render_metrics(reg),
+    '# HELP feature Enabled features.
+# TYPE feature stateset
+feature{feature="jit"} 0
+feature{feature="tce"} 1
+# HELP status Enabled status.
+# TYPE status stateset
+status{status="enabled",entity="follower"} 0
+status{status="enabled",entity="leader"} 1
+# EOF'
+  )
+
+  testthat::expect_equal(
+    reg$render_all(format = "legacy"),
+    '# HELP feature Enabled features.
+# TYPE feature gauge
+feature{feature="jit"} 0
+feature{feature="tce"} 1
+# HELP status Enabled status.
+# TYPE status gauge
+status{status="enabled",entity="follower"} 0
+status{status="enabled",entity="leader"} 1
+'
+  )
+})

@@ -528,6 +528,148 @@ Histogram <- R6::R6Class(
   )
 )
 
+Info <- R6::R6Class(
+  "Info", inherit = Metric,
+  public = list(
+    initialize = function(name, help, labels = character(),
+                          registry = global_registry()) {
+      name <- gsub("_info$", "", name)
+      super$initialize(
+        name, help, type = "info", labels = labels, unit = NULL,
+        registry = registry
+      )
+      if (!is.null(private$labels)) {
+        private$value <- new.env(parent = emptyenv())
+      }
+    },
+
+    render = function(format = "openmetrics") {
+      if (format == "openmetrics") {
+        header <- private$header()
+      } else {
+        # Compatibility with the legacy format, which doesn't support the
+        # "info" type.
+        header <- private$header(
+          name = sprintf("%s_info", private$name), type = "gauge"
+        )
+      }
+      # This is an edge case.
+      if (length(private$value) == 0 && is.null(private$labels)) {
+        # Basically, consider this uninitialized.
+        ""
+      } else if (length(private$value) > 0 && !is.null(private$labels)) {
+        entries <- vapply(ls(private$value), function(key) {
+          sprintf(
+            "%s_info{%s,%s} 1", private$name, encode_labels(private$value[[key]]),
+            key
+          )
+        }, character(1))
+        sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
+      } else {
+        keys <- if (is.null(private$labels)) private$value else private$labels
+        sprintf("%s\n%s_info{%s} 1\n", header, private$name, encode_labels(keys))
+      }
+    },
+
+    set = function(...) {
+      info <- parse_labels(list(...))
+      if (is.null(private$labels)) {
+        private$value <- info
+      } else {
+        labels <- names(info) %in% private$labels
+        key <- encode_labels(validate_labels(info[labels], private$labels))
+        private$value[[key]] <- info[!labels]
+      }
+    },
+
+    reset = function() {
+      if (is.null(private$labels)) {
+        private$value <- NULL
+      } else {
+        private$value <- new.env(parent = emptyenv())
+      }
+    }
+  ),
+  private = list(
+    value = NULL
+  )
+)
+
+StateSet <- R6::R6Class(
+  "StateSet", inherit = Metric,
+  public = list(
+    initialize = function(name, help, states, labels = character(),
+                          registry = global_registry()) {
+      stopifnot(is.character(states))
+      super$initialize(
+        name, help, type = "stateset", labels = labels, unit = NULL,
+        registry = registry
+      )
+      if (private$name %in% private$labels) {
+        stop("A stateset's labels must not include an entry matching its name.")
+      }
+      private$states <- states
+      if (is.null(private$labels)) {
+        private$value <- numeric(length = length(states))
+        names(private$value) <- states
+      } else {
+        private$value <- new.env(parent = emptyenv())
+      }
+    },
+
+    render = function(format = "openmetrics") {
+      if (format == "openmetrics") {
+        header <- private$header()
+      } else {
+        # Compatibility with the legacy format, which doesn't support the
+        # "stateset" type.
+        header <- private$header(type = "gauge")
+      }
+      if (is.null(private$labels)) {
+        entries <- sprintf(
+          "%s{%s=\"%s\"} %s", private$name, private$name, names(private$value),
+          private$value
+        )
+        sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
+      } else {
+        entries <- vapply(ls(private$value), function(key) {
+          subentries <- sprintf(
+            "%s{%s=\"%s\",%s} %s", private$name, private$name,
+            names(private$value[[key]]), key, private$value[[key]]
+          )
+          paste(subentries, collapse = "\n")
+        }, character(1))
+        sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
+      }
+    },
+
+    set = function(state, value, ...) {
+      stopifnot(state %in% private$states &&
+                  (is.numeric(value) || is.logical(value)))
+      if (is.null(private$labels)) {
+        private$value[state] <- as.numeric(value)
+      } else {
+        key <- encode_labels(validate_labels(list(...), private$labels))
+        current <- private$value[[key]]
+        if (is.null(current)) {
+          private$value[[key]] <- numeric(length = length(private$states))
+          names(private$value[[key]]) <- private$states
+          private$value[[key]][state] <- as.numeric(value)
+        } else {
+          private$value[[key]][state] <- as.numeric(value)
+        }
+      }
+    },
+
+    reset = function() {
+      private$value <- NULL
+    }
+  ),
+  private = list(
+    value = NULL, states = NULL
+  )
+)
+
 parse_labels <- function(labels) {
   if (length(labels) == 0) {
     return(NULL)

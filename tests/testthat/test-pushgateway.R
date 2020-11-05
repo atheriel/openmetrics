@@ -16,6 +16,15 @@ testthat::test_that("Pushgateway interaction works as expected", {
   testthat::skip_on_cran()
   testthat::skip_on_ci()
 
+  tryCatch({
+    response <- httr::GET("http://localhost:9091", path = "/-/healthy")
+    httr::stop_for_status(response)
+  }, error = function(e) {
+    testthat::skip(
+      sprintf("No local Pushgateway server detected: %s.", e$message)
+    )
+  })
+
   testthat::expect_silent(
     push_to_gateway(
       "http://localhost:9091", job = "openmetrics-tests-1", registry = reg

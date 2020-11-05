@@ -123,9 +123,9 @@ Here are some examples collected from around the
 house:
 
 ``` r
-meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
+meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 meows$inc(cat = "Shamus") # Count one meow from Shamus.
-meows$inc(3) # Count three meows of unknown origin.
+meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
 
 thermostat <- gauge_metric("thermostat", "Thermostat display.")
 thermostat$set(21.3) # Read from the display...
@@ -165,7 +165,9 @@ cat(render_metrics())
     # HELP meows Heard around the house.
     # TYPE meows counter
     meows_total{cat="Shamus"} 1
+    meows_created{cat="Shamus"} 1604597246.05814
     meows_total{cat="Unknown"} 3
+    meows_created{cat="Unknown"} 1604597246.05893
     # HELP thermostat Thermostat display.
     # TYPE thermostat gauge
     thermostat 19.3
@@ -179,6 +181,7 @@ cat(render_metrics())
     temperature_bucket{room="bathroom",le="+Inf"} 11
     temperature_sum{room="bathroom"} 234.387663039796
     temperature_count{room="bathroom"} 11
+    temperature_created{room="bathroom"} 1604597246.08967
     temperature_bucket{room="kitchen",le="10.0"} 0
     temperature_bucket{room="kitchen",le="15.0"} 0
     temperature_bucket{room="kitchen",le="20.0"} 1
@@ -187,6 +190,7 @@ cat(render_metrics())
     temperature_bucket{room="kitchen",le="+Inf"} 9
     temperature_sum{room="kitchen"} 198.854388891071
     temperature_count{room="kitchen"} 9
+    temperature_created{room="kitchen"} 1604597246.08957
     # EOF
 
 You can use this to implement a `/metrics` endpoint in your application

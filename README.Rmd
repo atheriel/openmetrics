@@ -127,9 +127,9 @@ make use of labels, you must pass a default value at the time of creation.
 Here are some examples collected from around the house:
 
 ```{r custom-metrics}
-meows <- counter_metric("meows", "Heard around the house.", cat = "Unknown")
+meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 meows$inc(cat = "Shamus") # Count one meow from Shamus.
-meows$inc(3) # Count three meows of unknown origin.
+meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
 
 thermostat <- gauge_metric("thermostat", "Thermostat display.")
 thermostat$set(21.3) # Read from the display...

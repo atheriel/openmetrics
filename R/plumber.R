@@ -25,7 +25,7 @@
 #' }
 #' @export
 register_plumber_metrics <- function(app, registry = global_registry()) {
-  stopifnot(inherits(app, "plumber"))
+  stopifnot(inherits(app, c("plumber", "Plumber")))
 
   # Define two simple metrics. The most common conventions seem to be:
   #

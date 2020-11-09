@@ -7,7 +7,8 @@ testthat::test_that("Pushgateway interaction works as expected", {
   )
   counter$inc(5)
   hist <- histogram_metric(
-    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+    "dist", "Custom histogram.", labels = c("method", "endpoint"),
+    registry = reg
   )
   hist$observe(51.7, method = "GET", endpoint = "/")
   hist$observe(10, method = "GET", endpoint = "/",ignored = "value")

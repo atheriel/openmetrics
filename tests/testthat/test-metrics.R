@@ -85,7 +85,8 @@ testthat::test_that("Metrics with labels work as expected", {
   testthat::expect_equal(length(collect_metrics(reg)), 0)
 
   counter <- counter_metric(
-    "count", "Custom counter.", method = "GET", endpoint = "/", registry = reg
+    "count", "Custom counter.", labels = c("method", "endpoint"),
+    registry = reg
   )
   testthat::expect_equal(counter$inc(5, method = "GET", endpoint = "/"), 5)
   testthat::expect_equal(
@@ -94,7 +95,7 @@ testthat::test_that("Metrics with labels work as expected", {
   testthat::expect_equal(counter$inc(method = "POST", endpoint = "/"), 1)
 
   gauge <- gauge_metric(
-    "value", "Custom gauge.", method = "GET", endpoint = "/", registry = reg
+    "value", "Custom gauge.", labels = c("method", "endpoint"), registry = reg
   )
   testthat::expect_equal(gauge$set(5, method = "GET", endpoint = "/"), 5)
   testthat::expect_equal(
@@ -103,7 +104,8 @@ testthat::test_that("Metrics with labels work as expected", {
   testthat::expect_equal(gauge$inc(method = "POST", endpoint = "/"), 1)
 
   hist <- histogram_metric(
-    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+    "dist", "Custom histogram.", labels = c("method", "endpoint"),
+    registry = reg
   )
   testthat::expect_equal(
     hist$observe(51.7, method = "GET", endpoint = "/"), 51.7
@@ -214,7 +216,8 @@ testthat::test_that("Histogram metrics render correctly in legacy format", {
   reg <- registry()
 
   hist <- histogram_metric(
-    "dist", "Custom histogram.", method = "GET", endpoint = "/", registry = reg
+    "dist", "Custom histogram.", labels = c("method", "endpoint"),
+    registry = reg
   )
   hist$observe(51.7, method = "GET", endpoint = "/")
   hist$observe(10, method = "GET", endpoint = "/",ignored = "value")

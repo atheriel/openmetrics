@@ -41,14 +41,14 @@ register_plumber_metrics <- function(app, registry = global_registry()) {
   # * https://www.npmjs.com/package/prometheus-api-metrics
   # * https://github.com/tdeekens/promster
   requests <- counter_metric(
-    "http_request", "Running total of HTTP requests.", path = "/",
-    method = "GET", status = "200", registry = registry
+    "http_request", "Running total of HTTP requests.",
+    labels = c("path", "method", "status"), registry = registry
   )
   duration <- histogram_metric(
     "http_request_duration_seconds", "Duration of HTTP requests, in seconds.",
     # These are what node.js's prom-client uses.
     buckets = c(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10),
-    path = "/", method = "GET", status = "200", registry = registry
+    labels = c("path", "method", "status"), registry = registry
   )
 
   preroute_hook <- function(req, res) {

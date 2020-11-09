@@ -1,7 +1,9 @@
 ## Release summary
 
-This is a minor release, adding two new public functions and one new public
-method, as well as some compatibility fixes.
+This is a major release, adding much better conformance with the draft
+OpenMetrics specification, correctness checks, and additional features.
+
+There is a breaking change documented in the NEWS file.
 
 ## Test environments
 

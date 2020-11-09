@@ -1,4 +1,4 @@
-# openmetrics 0.2.0.9000
+# openmetrics 0.3.0
 
 ## Breaking Changes
 
@@ -12,6 +12,8 @@
   (such as `inc()` or `set()`), since there is no default to fall back on.
 
 ## Other Improvements
+
+* The package now has its own hex logo.
 
 * Only generate the OpenMetrics format when the (preliminary) OpenMetrics
   content-type is passed in the `Accept` header. Otherwise, fall back on the

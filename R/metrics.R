@@ -422,6 +422,9 @@ Histogram <- R6::R6Class(
         # Matching labels need to be printed together to satisfy the OpenMetrics
         # parser.
         keys <- ls(private$dist)
+        if (length(keys) == 0) {
+          return("")
+        }
         blocks <- character(length(keys))
         # For legacy formatting, keep _created under its own metric.
         if (format == "openmetrics") {

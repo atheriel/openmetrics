@@ -259,6 +259,18 @@ dist_created{method="POST",endpoint="/"} 1
   )
 })
 
+testthat::test_that("Histogram metrics with no samples render correctly", {
+  reg <- registry()
+
+  hist <- histogram_metric(
+    "dist", "Custom histogram.", labels = c("method", "endpoint"),
+    registry = reg
+  )
+
+  testthat::expect_equal(reg$render_all(), "# EOF")
+  testthat::expect_equal(reg$render_all(format = "legacy"), "")
+})
+
 testthat::test_that("Metric units work as expected", {
   reg <- registry()
 

@@ -93,6 +93,8 @@ register_shiny_metrics <- function(app, registry = openmetrics::global_registry(
     }
   }
 
+  # Prevent 'Key in use' errors when this function is called more than once.
+  handlerManager$removeHandler("/metrics")
   handlerManager$addHandler(metrics_handler, "/metrics")
   app
 }

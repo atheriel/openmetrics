@@ -3,6 +3,9 @@
 * `register_shiny_metrics()` will no longer generate a cryptic error if called
   more than once in a session (#9).
 
+* Counters now have their creation time reset when the total is reset, as
+  required by the OpenMetrics standard (#10).
+
 * Minor performance improvements and better error messages.
 
 # openmetrics 0.3.0

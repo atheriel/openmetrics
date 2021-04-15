@@ -277,6 +277,7 @@ Counter <- R6::R6Class(
 
     reset = function() {
       if (is.null(private$labels)) {
+        private$created <- unclass(Sys.time())
         private$value <- 0
       } else {
         private$created <- new.env(parent = emptyenv())

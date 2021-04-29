@@ -154,8 +154,8 @@ microseconds.
 
 ### Rendering Metrics Manually
 
-The `render_metrics()` function exposes the [text-based
-format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format)
+The `render_metrics()` function exposes the [text-based OpenMetrics
+format](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md)
 understood by Prometheus. Here’s what the metrics above look like:
 
 ``` r

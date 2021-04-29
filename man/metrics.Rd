@@ -66,7 +66,7 @@ Metrics must have a unique name.
 All metric objects have a \code{reset()} method that reverts the underlying value
 (or values) to zero, an \code{unregister()} method that removes them from the
 registry they were created in, and a \code{render()} method that writes a
-representation of the metric in the text-based \href{https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format}{OpenMetrics format}.
+representation of the metric in the text-based \href{https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md}{OpenMetrics format}.
 Normally, \code{\link[=render_metrics]{render_metrics()}} is used instead.
 
 In addition, various metrics have their own methods:
@@ -112,5 +112,6 @@ temperature$render()
 
 }
 \seealso{
-The official documentation on \href{https://prometheus.io/docs/concepts/metric_types/}{Metric Types}.
+The OpenMetrics specification on \href{https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-types}{Metric Types}
+as well as \href{https://prometheus.io/docs/concepts/metric_types/}{the original Prometheus documenation}.
 }

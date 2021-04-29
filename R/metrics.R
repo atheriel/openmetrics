@@ -23,7 +23,7 @@
 #' (or values) to zero, an `unregister()` method that removes them from the
 #' registry they were created in, and a `render()` method that writes a
 #' representation of the metric in the text-based [OpenMetrics
-#' format](https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format).
+#' format](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md).
 #' Normally, [render_metrics()] is used instead.
 #'
 #' In addition, various metrics have their own methods:
@@ -71,7 +71,10 @@
 #' }
 #' temperature$render()
 #'
-#' @seealso The official documentation on [Metric Types](https://prometheus.io/docs/concepts/metric_types/).
+#' @seealso The OpenMetrics specification on [Metric
+#'   Types](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-types)
+#'   as well as [the original Prometheus documenation](https://prometheus.io/docs/concepts/metric_types/).
+#'
 #' @name metrics
 #' @export
 counter_metric <- function(name, help, labels = character(), ..., unit = NULL,

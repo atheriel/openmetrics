@@ -3,6 +3,8 @@
 * `register_shiny_metrics()` will no longer generate a cryptic error if called
   more than once in a session (#9).
 
+* Minor performance improvements and better error messages.
+
 # openmetrics 0.3.0
 
 ## Breaking Changes

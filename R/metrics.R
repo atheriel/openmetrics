@@ -255,7 +255,12 @@ Counter <- R6::R6Class(
     },
 
     inc = function(by = 1, ...) {
-      stopifnot(by >= 0)
+      if (by < 0) {
+        stop(
+          "Counter metrics can only be incremented by a positive number.",
+          call. = FALSE
+        )
+      }
       if (is.null(private$labels)) {
         private$value <- private$value + by
       } else {
@@ -345,7 +350,9 @@ Gauge <- R6::R6Class(
     },
 
     set = function(value, ...) {
-      stopifnot(is.numeric(value))
+      if (!is.numeric(value)) {
+        stop("Gauge metrics can only be set to a number.", call. = FALSE)
+      }
       if (is.null(private$labels)) {
         private$value <- value
       } else {
@@ -464,7 +471,9 @@ Histogram <- R6::R6Class(
     },
 
     observe = function(value, ...) {
-      stopifnot(is.numeric(value))
+      if (!is.numeric(value)) {
+        stop("Histogram metrics can only observe a number.", call. = FALSE)
+      }
       dist <- as.integer(value <= private$buckets)
 
       # Update the running sum and count values.

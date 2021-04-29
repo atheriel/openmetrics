@@ -5,6 +5,8 @@
 \alias{counter_metric}
 \alias{gauge_metric}
 \alias{histogram_metric}
+\alias{info_metric}
+\alias{stateset_metric}
 \title{Metrics}
 \usage{
 counter_metric(
@@ -34,6 +36,16 @@ histogram_metric(
   unit = NULL,
   registry = global_registry()
 )
+
+info_metric(name, help, labels = character(), registry = global_registry())
+
+stateset_metric(
+  name,
+  help,
+  states,
+  labels = character(),
+  registry = global_registry()
+)
 }
 \arguments{
 \item{name}{The name of the metric.}
@@ -45,7 +57,7 @@ histogram_metric(
 \item{...}{For backward compatibility, otherwise ignored.}
 
 \item{unit}{An optional unit for the metric, e.g. \code{"seconds"}. Must
-match the metric name.}
+match the metric name. Info and StateSet metrics cannot have a unit.}
 
 \item{registry}{Where to register the metric for later retrieval.}
 
@@ -58,13 +70,12 @@ An object with methods to manipulate the metric. See details.
 }
 \description{
 A metric is a measure which can be aggregated into a time series, and comes
-in one of three types: counters, gauges, and histograms.
+in one of five types: counter, gauge, histogram, info, or stateset.
 
 Metrics must have a unique name.
 }
 \details{
-All metric objects have a \code{reset()} method that reverts the underlying value
-(or values) to zero, an \code{unregister()} method that removes them from the
+All metric objects have an \code{unregister()} method that removes them from the
 registry they were created in, and a \code{render()} method that writes a
 representation of the metric in the text-based \href{https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md}{OpenMetrics format}.
 Normally, \code{\link[=render_metrics]{render_metrics()}} is used instead.
@@ -77,7 +88,7 @@ for counters and gauges.
 \item \code{dec(by = 1, ...)}: Decrements the metric by some number, defaulting to 1.
 Further parameters are interpreted as labels. Available for gauges.
 \item \code{set(value, ...)}: Sets the metric to some number. Further parameters are
-interpreted as labels. Available for gauges.
+interpreted as labels. Available for gauges, infos, and statesets.
 \item \code{set_to_current_time(...)}: Sets the metric to the current time, in seconds
 from the Unix epoch. Further parameters are interpreted as labels.
 Available for gauges.
@@ -110,6 +121,15 @@ for (measure in rnorm(20, mean = 21.5)) {
 }
 temperature$render()
 
+experiment_info <- info_metric(
+  "experiment", "Experiment details.", labels = c("experimenter")
+)
+experiment_info$set(experimenter = "yourstruly")
+
+experiment_status <- stateset_metric(
+  "experiment", "Current experiment status.", c("started", "finished")
+)
+experiment_status$set("started", TRUE)
 }
 \seealso{
 The OpenMetrics specification on \href{https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-types}{Metric Types}

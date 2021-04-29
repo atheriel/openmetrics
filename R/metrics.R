@@ -3,7 +3,7 @@
 #' @description
 #'
 #' A metric is a measure which can be aggregated into a time series, and comes
-#' in one of three types: counters, gauges, and histograms.
+#' in one of five types: counter, gauge, histogram, info, or stateset.
 #'
 #' Metrics must have a unique name.
 #'
@@ -11,7 +11,7 @@
 #' @param help A brief, one-sentence explanation of the metric's meaning.
 #' @param labels A vector of label names for the metric.
 #' @param unit An optional unit for the metric, e.g. \code{"seconds"}. Must
-#'   match the metric name.
+#'   match the metric name. Info and StateSet metrics cannot have a unit.
 #' @param ... For backward compatibility, otherwise ignored.
 #' @param registry Where to register the metric for later retrieval.
 #'
@@ -19,8 +19,7 @@
 #'
 #' @details
 #'
-#' All metric objects have a `reset()` method that reverts the underlying value
-#' (or values) to zero, an `unregister()` method that removes them from the
+#' All metric objects have an `unregister()` method that removes them from the
 #' registry they were created in, and a `render()` method that writes a
 #' representation of the metric in the text-based [OpenMetrics
 #' format](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md).
@@ -36,7 +35,7 @@
 #'   Further parameters are interpreted as labels. Available for gauges.
 #'
 #' * `set(value, ...)`: Sets the metric to some number. Further parameters are
-#'   interpreted as labels. Available for gauges.
+#'   interpreted as labels. Available for gauges, infos, and statesets.
 #'
 #' * `set_to_current_time(...)`: Sets the metric to the current time, in seconds
 #'   from the Unix epoch. Further parameters are interpreted as labels.
@@ -71,6 +70,15 @@
 #' }
 #' temperature$render()
 #'
+#' experiment_info <- info_metric(
+#'   "experiment", "Experiment details.", labels = c("experimenter")
+#' )
+#' experiment_info$set(experimenter = "yourstruly")
+#'
+#' experiment_status <- stateset_metric(
+#'   "experiment", "Current experiment status.", c("started", "finished")
+#' )
+#' experiment_status$set("started", TRUE)
 #' @seealso The OpenMetrics specification on [Metric
 #'   Types](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#metric-types)
 #'   as well as [the original Prometheus documenation](https://prometheus.io/docs/concepts/metric_types/).
@@ -123,6 +131,35 @@ histogram_metric <- function(name, help, buckets = c(0.005, 0.01, 0.025, 0.05, 0
     labels <- union(labels, names(list(...)))
     Histogram$new(
       name = name, help = help, buckets = buckets, labels = labels, unit = unit,
+      registry = registry
+    )
+  } else {
+    existing
+  }
+}
+
+#' @rdname metrics
+#' @export
+info_metric <- function(name, help, labels = character(),
+                        registry = global_registry()) {
+  existing <- registry$metric(name, type = "info")
+  if (is.null(existing)) {
+    Info$new(
+      name = name, help = help, labels = labels, registry = registry
+    )
+  } else {
+    existing
+  }
+}
+
+#' @rdname metrics
+#' @export
+stateset_metric <- function(name, help, states, labels = character(),
+                            registry = global_registry()) {
+  existing <- registry$metric(name, type = "stateset")
+  if (is.null(existing)) {
+    StateSet$new(
+      name = name, help = help, states = states, labels = labels,
       registry = registry
     )
   } else {

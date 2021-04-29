@@ -302,11 +302,11 @@ testthat::test_that("Info metrics work as expected", {
   reg <- registry()
 
   # Basic usage. The "info" suffix is silently dropped.
-  info <- Info$new("build_info", "Build information.", registry = reg)
+  info <- info_metric("build_info", "Build information.", registry = reg)
   info$set(revision = "0a45de7a", version = "1.0.0")
 
   # With labels.
-  info <- Info$new(
+  info <- info_metric(
     "ports", "Ports monitored.", labels = "track", registry = reg
   )
   info$set(port = "12345", track = "dev")
@@ -341,7 +341,7 @@ testthat::test_that("StateSet metrics work as expected", {
   reg <- registry()
 
   testthat::expect_error(
-    StateSet$new(
+    stateset_metric(
       "feature", "Enabled features.", states = c("jit", "tce"),
       labels = "feature", registry = reg
     ),
@@ -349,13 +349,13 @@ testthat::test_that("StateSet metrics work as expected", {
   )
 
   # Basic usage.
-  ss <- StateSet$new(
+  ss <- stateset_metric(
     "feature", "Enabled features.", states = c("jit", "tce"), registry = reg
   )
   ss$set("tce", 1)
 
   # Enum-style, with labels.
-  ss <- StateSet$new(
+  ss <- stateset_metric(
     "status", "Enabled status.", states = "enabled", labels = "entity",
     registry = reg
   )

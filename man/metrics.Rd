@@ -84,7 +84,9 @@ In addition, various metrics have their own methods:
 \itemize{
 \item \code{inc(by = 1, ...)}: Increments the metric by some positive number,
 defaulting to 1. Further parameters are interpreted as labels. Available
-for counters and gauges.
+for counters and gauges. Counters can take an additional parameter,
+\code{exemplar}, a (possibly-empty) list of labels to use as the total's
+"exemplar" value.
 \item \code{dec(by = 1, ...)}: Decrements the metric by some number, defaulting to 1.
 Further parameters are interpreted as labels. Available for gauges.
 \item \code{set(value, ...)}: Sets the metric to some number. Further parameters are
@@ -103,6 +105,7 @@ Available for histograms.
 meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 meows$inc(cat = "Shamus") # Count one meow from Shamus.
 meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
+meows$inc(1, cat = "Shamus", exemplar = list(id = "451"))
 meows$render()
 
 thermostat <- gauge_metric("thermostat", "Thermostat display.")

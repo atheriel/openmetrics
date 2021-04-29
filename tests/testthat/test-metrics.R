@@ -2,6 +2,7 @@
 reset_created <- function(rendered) {
   out <- strsplit(rendered, "\n", fixed = TRUE)[[1]]
   out <- gsub("_created(.*)\\s([0-9\\.]+)$", "_created\\1 1", out)
+  out <- gsub("# \\{([^}]*)\\} ([^ ]*) ([0-9\\.]+)$", "# {\\1} \\2 1", out)
   out <- paste(out, collapse = "\n")
   if (endsWith(out, "EOF")) out else sprintf("%s\n", out)
 }
@@ -210,6 +211,69 @@ count2_total{entity="framework"} 1
 count2_total_created{entity="framework"} 1
 '
   )
+})
+
+testthat::test_that("Counter metrics can have exemplars", {
+  reg <- registry()
+
+  c1 <- counter_metric(
+    "count", "Custom counter.", registry = reg
+  )
+  c1$inc()
+
+  c2 <- counter_metric(
+    "count2", "Custom counter.", labels = "entity", registry = reg
+  )
+  c2$inc(entity = "framework")
+
+  # No exemplars added yet.
+  testthat::expect_equal(
+    reset_created(reg$render_all()),
+    '# HELP count Custom counter.
+# TYPE count counter
+count_total 1
+count_created 1
+# HELP count2 Custom counter.
+# TYPE count2 counter
+count2_total{entity="framework"} 1
+count2_created{entity="framework"} 1
+# EOF'
+  )
+
+  c1$inc(exemplar = list(id = "123"))
+  c2$inc(entity = "framework", exemplar = list(id = "123"))
+
+  # Exemplars with a label.
+  testthat::expect_equal(
+    reset_created(reg$render_all()),
+    '# HELP count Custom counter.
+# TYPE count counter
+count_total 2 # {id="123"} 1 1
+count_created 1
+# HELP count2 Custom counter.
+# TYPE count2 counter
+count2_total{entity="framework"} 2 # {id="123"} 1 1
+count2_created{entity="framework"} 1
+# EOF'
+  )
+
+  c1$inc(exemplar = list())
+  c2$inc(entity = "framework", exemplar = list())
+
+  # Exemplars with empty labels.
+  testthat::expect_equal(
+    reset_created(reg$render_all()),
+    '# HELP count Custom counter.
+# TYPE count counter
+count_total 3 # {} 1 1
+count_created 1
+# HELP count2 Custom counter.
+# TYPE count2 counter
+count2_total{entity="framework"} 3 # {} 1 1
+count2_created{entity="framework"} 1
+# EOF'
+  )
+
 })
 
 testthat::test_that("Histogram metrics render correctly in legacy format", {

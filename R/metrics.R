@@ -29,7 +29,9 @@
 #'
 #' * `inc(by = 1, ...)`: Increments the metric by some positive number,
 #'   defaulting to 1. Further parameters are interpreted as labels. Available
-#'   for counters and gauges.
+#'   for counters and gauges. Counters can take an additional parameter,
+#'   `exemplar`, a (possibly-empty) list of labels to use as the total's
+#'   "exemplar" value.
 #'
 #' * `dec(by = 1, ...)`: Decrements the metric by some number, defaulting to 1.
 #'   Further parameters are interpreted as labels. Available for gauges.
@@ -52,6 +54,7 @@
 #' meows <- counter_metric("meows", "Heard around the house.", labels = "cat")
 #' meows$inc(cat = "Shamus") # Count one meow from Shamus.
 #' meows$inc(3, cat = "Unknown") # Count three meows of unknown origin.
+#' meows$inc(1, cat = "Shamus", exemplar = list(id = "451"))
 #' meows$render()
 #'
 #' thermostat <- gauge_metric("thermostat", "Thermostat display.")
@@ -240,9 +243,11 @@ Counter <- R6::R6Class(
         # Fast version, just a value.
         private$value <- 0
         private$created <- unclass(Sys.time())
+        private$exemplar <- ""
       } else {
         private$value <- new.env(parent = emptyenv())
         private$created <- new.env(parent = emptyenv())
+        private$exemplar <- new.env(parent = emptyenv())
       }
     },
 
@@ -258,14 +263,16 @@ Counter <- R6::R6Class(
         header <- private$header()
         if (is.null(private$labels)) {
           sprintf(
-            "%s\n%s_total %s\n%s_created %s\n", header, private$name,
-            private$value, private$name, private$created
+            "%s\n%s_total %s%s\n%s_created %s\n", header, private$name,
+            private$value, private$exemplar, private$name, private$created
           )
         } else {
           entries <- vapply(ls(private$value), function(key) {
             sprintf(
-              "%s_total{%s} %s\n%s_created{%s} %s", private$name, key,
-              private$value[[key]], private$name, key, private$created[[key]]
+              "%s_total{%s} %s%s\n%s_created{%s} %s",
+              private$name, key, private$value[[key]],
+              get0(key, private$exemplar, ifnotfound = ""),
+              private$name, key, private$created[[key]]
             )
           }, character(1))
           sprintf("%s\n%s\n", header, paste(entries, collapse = "\n"))
@@ -294,17 +301,26 @@ Counter <- R6::R6Class(
       }
     },
 
-    inc = function(by = 1, ...) {
+    inc = function(by = 1, ..., exemplar = NULL) {
       if (by < 0) {
         stop(
           "Counter metrics can only be incremented by a positive number.",
           call. = FALSE
         )
       }
+      if (!is.null(exemplar) && !is.list(exemplar)) {
+        stop("Exemplars must be a named list, or NULL.", call. = FALSE)
+      }
       if (is.null(private$labels)) {
+        if (!is.null(exemplar)) {
+          private$exemplar <- exemplar_entry(by, exemplar)
+        }
         private$value <- private$value + by
       } else {
         key <- encode_labels(validate_labels(list(...), private$labels))
+        if (!is.null(exemplar)) {
+          private$exemplar[[key]] <- exemplar_entry(by, exemplar)
+        }
         value <- private$value[[key]]
         if (is.null(value)) {
           private$created[[key]] <- unclass(Sys.time())
@@ -319,14 +335,16 @@ Counter <- R6::R6Class(
       if (is.null(private$labels)) {
         private$created <- unclass(Sys.time())
         private$value <- 0
+        private$exemplar <- ""
       } else {
         private$created <- new.env(parent = emptyenv())
         private$value <- new.env(parent = emptyenv())
+        private$exemplar <- new.env(parent = emptyenv())
       }
     }
   ),
   private = list(
-    value = NULL, created = NULL
+    value = NULL, created = NULL, exemplar = NULL
   )
 )
 
@@ -706,6 +724,15 @@ StateSet <- R6::R6Class(
     value = NULL, states = NULL
   )
 )
+
+exemplar_entry <- function(value, labels, time = Sys.time()) {
+  sprintf(
+    " # {%s} %s %s",
+    if (length(labels) == 0) "" else encode_labels(parse_labels(labels)),
+    value,
+    unclass(time)
+  )
+}
 
 parse_labels <- function(labels) {
   if (length(labels) == 0) {

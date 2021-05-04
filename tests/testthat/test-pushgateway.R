@@ -33,6 +33,12 @@ testthat::test_that("Pushgateway interaction works as expected", {
   )
   testthat::expect_silent(
     push_to_gateway(
+      "http://localhost:9091", job = "openmetrics-tests-1", registry = reg,
+      retry_times = 2, httr_config = httr::config(timeout_ms = 1000)
+    )
+  )
+  testthat::expect_silent(
+    push_to_gateway(
       "http://localhost:9091", job = "openmetrics-tests-1", instance = "2",
       pod = Sys.info()["nodename"], registry = reg
     )

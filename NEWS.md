@@ -1,5 +1,9 @@
 # openmetrics 0.3.0.9000
 
+* `push_to_gateway()` now has `retry_times` and `httr_config` parameters to
+  enable more fine-grained control over the underlying HTTP request -- for
+  example, to set timeouts or control SSL behaviour.
+
 * `register_shiny_metrics()` will no longer generate a cryptic error if called
   more than once in a session (#9).
 

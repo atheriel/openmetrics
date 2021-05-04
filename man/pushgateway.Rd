@@ -5,7 +5,15 @@
 \alias{delete_from_gateway}
 \title{Pushgateway Integration}
 \usage{
-push_to_gateway(url, job, instance = NA, registry = global_registry(), ...)
+push_to_gateway(
+  url,
+  job,
+  instance = NA,
+  registry = global_registry(),
+  ...,
+  retry_times = 3,
+  httr_config = list()
+)
 
 delete_from_gateway(url, job, instance = NA, ...)
 }
@@ -21,6 +29,12 @@ metrics, or \code{NA} to leave it unset.}
 
 \item{...}{Additional named string arguments converted to labels. Beware
 that these are not yet checked for URL safety.}
+
+\item{retry_times}{Number of times to (re)try the request if it fails. Passed
+to \code{\link[httr:RETRY]{httr::RETRY()}}.}
+
+\item{httr_config}{Additional request configuration (such as timeouts or SSL
+options) passed to \code{\link[httr:RETRY]{httr::RETRY()}}.}
 }
 \value{
 \code{NULL}, invisibly.

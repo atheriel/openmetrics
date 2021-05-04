@@ -17,6 +17,10 @@
 #' @param registry A `Registry` object, defaulting to the shared global one.
 #' @param ... Additional named string arguments converted to labels. Beware
 #'   that these are not yet checked for URL safety.
+#' @param retry_times Number of times to (re)try the request if it fails. Passed
+#'   to [`httr::RETRY()`].
+#' @param httr_config Additional request configuration (such as timeouts or SSL
+#'   options) passed to [`httr::RETRY()`].
 #'
 #' @return `NULL`, invisibly.
 #'
@@ -31,7 +35,8 @@
 #' @rdname pushgateway
 #' @export
 push_to_gateway <- function(url, job, instance = NA,
-                            registry = global_registry(), ...) {
+                            registry = global_registry(), ..., retry_times = 3,
+                            httr_config = list()) {
   labels <- pushgateway_labels(job = job, instance = instance, ...)
   path <- sprintf(
     "/metrics/%s", paste(names(labels), labels, sep = "/", collapse = "/")
@@ -39,8 +44,10 @@ push_to_gateway <- function(url, job, instance = NA,
   rendered <- registry$render_all(format = "legacy")
   response <- httr::RETRY(
     "POST", url, path = path, body = rendered, encode = "form",
+    config = httr_config,
+    times = retry_times,
     # Pushgateway does not support the OpenMetrics format.
-    config = httr::content_type(.legacy_content_type),
+    httr::content_type(.legacy_content_type),
     # Pushgateway will send a 400 if the metric conflicts with an existing one,
     # in which case we don't want to retry (since it will always fail).
     terminate_on = 400

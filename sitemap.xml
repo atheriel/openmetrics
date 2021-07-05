@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//index.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/metrics.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/pushgateway.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/register_default_metrics.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/register_plumber_metrics.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/register_shiny_metrics.html</loc>
+  </url>
+  <url>
+    <loc>https://atheriel.github.io/openmetrics//reference/registry.html</loc>
+  </url>
+</urlset>

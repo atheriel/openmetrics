@@ -1,6 +1,6 @@
 Package: openmetrics
 Title: A 'Prometheus' Client for R Using the 'OpenMetrics' Format
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R: c(
   person("Aaron", "Jacobs", role = c("aut", "cre"),
          email = "atheriel@gmail.com"),
